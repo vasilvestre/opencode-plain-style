@@ -24,6 +24,35 @@ Rules include:
 Because the injection happens per request, the rules survive context compaction.
 AGENTS.md instructions, by contrast, get summarized away during compaction.
 
+## The rules, by example
+
+Five of the sixteen rules, before and after.
+Full rulebook: [.opencode/plugins/plain-style.md](.opencode/plugins/plain-style.md).
+
+```text
+Rule: imperative mood for steps
+  Before: You should run the tests before merging.
+  After:  Run the tests.
+
+Rule: must for requirements, no hedging
+  Before: The token may need a refresh during long sessions.
+  After:  Refresh the token. Sessions over 1 hour must use a fresh token.
+
+Rule: no vague intensifiers
+  Before: A very simple, basically automatic setup.
+  After:  A setup with two commands.
+
+Rule: active voice
+  Before: The file is rejected by the parser.
+  After:  The parser rejects the file.
+
+Rule: one action per step
+  Before: Install the dependencies and then start the dev server.
+  After:  1. Install the dependencies. 2. Start the dev server.
+```
+
+The pattern: every "before" hides a fact or an action. Every "after" states it.
+
 ## Install
 
 Add the package to the `plugin` array in `~/.config/opencode/opencode.json`:
