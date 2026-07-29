@@ -1,0 +1,8 @@
+This line is very loud and very long.
+The tool should keep this just as a test.
+This sentence uses very and just to trigger the scorer.
+This sentence has enough words to cross the thirty word threshold and keep going with extra filler words that make it much longer than needed for the benchmark.
+Another line is very plain.
+The result should fail the style check.
+Just a final line.
+One more very bad line.

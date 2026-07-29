@@ -1,0 +1,8 @@
+# Plain style sample
+Write clear sentences.
+Use active voice.
+- Keep lines short.
+- Pick direct words.
+The parser reads input.
+The server returns data.
+Users get a fast answer.
