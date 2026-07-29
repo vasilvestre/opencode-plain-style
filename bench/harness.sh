@@ -6,22 +6,22 @@
 #   --jobs N    2 = run each control/treatment pair in parallel (default 1)
 #   --probe N   run only prompts/<NAME>.txt (smoke runs)
 #
-# SAFETY: this script writes ONLY under $BENCH (plain-style-bench/).
+# SAFETY: this script writes ONLY under $BENCH (this bench/ directory).
 # The live config $LIVE is read-only input — never modified, never rm'd.
 # Do NOT set XDG_DATA_HOME: opencode auth lives in ~/.local/share/opencode.
 set -euo pipefail
 
 BENCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 readonly BENCH
-readonly LIVE="/home/vsilvestre/.config/opencode"
-readonly MODEL="kimi-for-coding/k3-256k"
+readonly LIVE="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+readonly MODEL="${BENCH_MODEL:-kimi-for-coding/k3-256k}"
 # opencode walks up from the cwd and merges any opencode.jsonc it finds as
-# project config — the bench dir lives inside the live config tree, so every
+# project config — if the bench dir lives inside the config tree, every
 # opencode call must run from a neutral cwd or the live config leaks in.
 readonly NEUTRAL_CWD="/tmp"
 
-if [[ "$BENCH" != "$LIVE/plain-style-bench" ]]; then
-  echo "SAFETY: unexpected bench path '$BENCH' (expected '$LIVE/plain-style-bench')" >&2
+if [[ ! -f "$LIVE/opencode.jsonc" ]]; then
+  echo "SAFETY: no live opencode config at '$LIVE' — this harness measures your installed config." >&2
   exit 1
 fi
 
