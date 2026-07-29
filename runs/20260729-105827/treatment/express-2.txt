@@ -1,0 +1,47 @@
+I detect research intent — this is a conceptual explanation request. No codebase or tools needed. Answering directly.
+
+## What happens when an HTTP request reaches an Express server
+
+1. **Node's HTTP server accepts the connection.** Express runs on top of Node's `http` module. Node parses the raw TCP bytes into a request object (`req`) and a response object (`res`).
+
+2. **Node hands the pair to Express.** Express calls its app function with `(req, res)`. Express wraps both objects with extra methods, such as `res.json()` and `req.query`.
+
+3. **The request enters the middleware stack.** Express walks through every registered layer in the order you added it. A layer is a middleware function or a route handler.
+
+4. **Each layer decides to act or pass.** A layer matches if its path (and method, for routes) fits the request. A matching layer can:
+   - run its function and call `next()` to pass control to the next layer,
+   - send a response and end the chain,
+   - or call `next(err)` to skip ahead to error-handling middleware.
+
+5. **A route handler sends a response.** A route like `app.get('/users', handler)` runs its handler when the path and method match. The handler calls `res.send()`, `res.json()`, or similar. This writes the response and ends the request.
+
+6. **Unmatched requests fall through.** If no layer responds, Express runs its final handler and returns `404 Cannot GET /path`.
+
+7. **Errors go to error-handling middleware.** Error handlers have four parameters: `(err, req, res, next)`. When any layer calls `next(err)` or throws (in a synchronous handler, or an async handler in Express 5), Express skips all remaining normal layers and runs the first error handler. If none exists, Express returns a 500 with the stack trace in development.
+
+## Example
+
+```js
+const express = require('express');
+const app = express();
+
+app.use(express.json());           // layer 1: parses the body, calls next()
+app.use((req, res, next) => {      // layer 2: runs for every request
+  console.log(req.method, req.url);
+  next();
+});
+
+app.get('/users', (req, res) => {  // layer 3: matches GET /users
+  res.json([{ id: 1 }]);           // sends the response, chain ends
+});
+
+app.use((err, req, res, next) => { // error handler: runs only after next(err)
+  res.status(500).json({ error: err.message });
+});
+
+app.listen(3000);
+```
+
+A `GET /users` request passes through layers 1 and 2, then layer 3 responds. A `POST /users` request skips layer 3 and gets Express's default 404.
+
+Key point: order defines behavior. Middleware you register first runs first.

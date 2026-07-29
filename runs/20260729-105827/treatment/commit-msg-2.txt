@@ -1,0 +1,12 @@
+`fix: guard null user in login flow to prevent crash`
+
+If you want more detail:
+
+```
+fix: guard null user in login flow to prevent crash
+
+The login flow crashed when the user lookup returned null.
+Add a null check before dereferencing the user object.
+```
+
+Skipped: scope/footer trailers. Add them when your repo convention requires them.

@@ -1,0 +1,40 @@
+Here's the lifecycle, in order:
+
+**1. Node HTTP layer**
+The TCP connection delivers bytes; Node's `http` module parses them into `req` (IncomingMessage) and `res` (ServerResponse) objects. Express is really just a callback you handed to `http.createServer()` — `app.listen(port)` is sugar for `http.createServer(app).listen(port)`.
+
+**2. Express app entry**
+The app is a function: `(req, res, next) => router(req, res, next)`. It wraps the req/res and hands them to its internal Router.
+
+**3. Router walks the stack**
+The router holds an ordered list of **layers** (registered in the order you called `app.use()`, `app.get()`, etc.). For each layer it checks:
+- **Path match** — does the layer's path/pattern match `req.url`?
+- **Method match** — for route layers, does `req.method` match (GET, POST, ...)?
+
+Matching middleware layers run in order, then matching route layers.
+
+**4. Middleware executes**
+A middleware is `(req, res, next)`. Each one either:
+- Calls `next()` → move to the next layer
+- Calls `next(err)` → **skip everything non-error-handling**, jump to error middleware (functions with 4 args: `(err, req, res, next)`)
+- Sends a response (`res.send()`, `res.json()`, ...) → the stack traversal stops; remaining layers are never reached
+- Does neither → request hangs forever (classic Express footgun)
+
+Typical stack: `express.json()` (parses body into `req.body`), CORS, logging, auth, then routes.
+
+**5. Route handler runs**
+The first matching route handler (e.g. `app.get('/users/:id', handler)`) runs. Params are populated (`req.params`, `req.query`). The handler does its work and ends the response: `res.json(...)`, `res.status(201).send(...)`, etc.
+
+**6. Response serialization**
+`res.send()`/`res.json()` sets headers (Content-Type, Content-Length), stringifies the body, and calls `res.end()` on the underlying Node response. Bytes go back over the socket.
+
+**7. Fallthroughs**
+- No layer matched and nothing responded → Express's **default 404 handler** sends `Cannot GET /whatever`
+- An error was thrown/passed to `next(err)` → the **default error handler** sends a 500 (with stack trace unless `NODE_ENV=production`)
+
+**Key takeaways:**
+- Order of `app.use()` calls is the order of execution — it *is* the program.
+- Middleware that doesn't respond *must* call `next()`, and must call it exactly once.
+- Async handlers that throw need `try/catch` + `next(err)` (or Express 5, which forwards rejected promises automatically).
+
+It's middleware all the way down: routes are just middleware that happens to match on path + method.

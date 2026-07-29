@@ -1,0 +1,60 @@
+I detect research/explanation intent — a how-to question. Direct answer:
+
+## Local Postgres for a Node app
+
+**1. Install Postgres**
+
+```bash
+# macOS
+brew install postgresql@16 && brew services start postgresql@16
+
+# Ubuntu/Debian
+sudo apt install postgresql && sudo systemctl start postgresql
+```
+
+Or skip installation entirely with Docker (one file, `docker-compose.yml`):
+
+```yaml
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: appdb
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+volumes: { pgdata: {} }
+```
+
+`docker compose up -d` — this is the laziest reliable path, and your teammates get the same DB for free.
+
+**2. Create the database** (native install only)
+
+```bash
+psql -c "CREATE DATABASE appdb;" -c "CREATE USER app WITH PASSWORD 'dev';" -c "GRANT ALL ON DATABASE appdb TO app;"
+```
+
+**3. Connect from Node**
+
+```bash
+npm i pg
+```
+
+```js
+import pg from 'pg';
+
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL ?? 'postgres://app:dev@localhost:5432/appdb',
+});
+
+const { rows } = await pool.query('SELECT NOW()');
+```
+
+**4. Put the URL in `.env`**, add `.env` to `.gitignore`:
+
+```
+DATABASE_URL=postgres://app:dev@localhost:5432/appdb
+```
+
+That's it. Skipped: ORM, migration tooling, connection-string builders — add Prisma/Drizzle + a migration tool when your schema stops fitting in one `CREATE TABLE` you run by hand.

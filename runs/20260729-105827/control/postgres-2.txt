@@ -1,0 +1,25 @@
+Simplest path: Docker. One command, no system install.
+
+```bash
+docker run -d --name pg -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:16
+```
+
+Then in your Node app:
+
+```bash
+npm install pg
+```
+
+```js
+import pg from 'pg';
+const db = new pg.Pool({ connectionString: 'postgres://postgres:dev@localhost:5432/postgres' });
+const { rows } = await db.query('SELECT 1');
+```
+
+If the app needs its own database (not the default `postgres` one):
+
+```bash
+docker exec -it pg psql -U postgres -c 'CREATE DATABASE myapp;'
+```
+
+Skipped: docker-compose, migrations, ORM setup. Add compose when you have 2+ services, migrations (e.g. `node-pg-migrate` or your ORM's) when the schema starts changing.

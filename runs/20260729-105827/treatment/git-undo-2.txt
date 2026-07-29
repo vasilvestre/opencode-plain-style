@@ -1,0 +1,12 @@
+Run:
+
+```
+git reset --soft HEAD~1
+```
+
+This undoes the commit but keeps your changes staged. Alternatives:
+
+- `git reset HEAD~1` (or `--mixed`) — keeps changes, unstages them
+- `git reset --hard HEAD~1` — deletes the changes too (avoid this one)
+
+Note: don't do this if you already pushed the commit. Use `git revert HEAD` instead, which creates a new commit that undoes the old one.

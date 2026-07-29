@@ -1,0 +1,7 @@
+```
+git reset --soft HEAD~1
+```
+
+Undoes the commit, keeps changes staged. Use `--mixed` (default) if you want them unstaged, `--hard` if you want them gone.
+
+If already pushed, don't reset — use `git revert HEAD` instead.

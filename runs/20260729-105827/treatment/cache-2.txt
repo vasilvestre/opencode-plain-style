@@ -1,0 +1,32 @@
+A cache is a fast storage layer that holds copies of data that is slow or expensive to fetch again.
+
+## Why developers use it
+
+**Speed.** Some sources are slow: databases, disk, network calls, heavy computations. A cache keeps the result close at hand, often in memory. The second request returns in microseconds instead of milliseconds.
+
+**Cost.** Repeated work costs money and load. If 10,000 users ask for the same homepage data, computing it 10,000 times wastes CPU. Cache it once, serve it 10,000 times.
+
+**Load protection.** Caches absorb traffic spikes so your database or API does not melt.
+
+## How it works
+
+1. A request arrives for data.
+2. Check the cache. Hit → return the stored copy.
+3. Miss → fetch from the slow source, store a copy, return it.
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def get_user(user_id: int):
+    return db.query("SELECT ...")  # runs once per user_id
+```
+
+## The trade-off
+
+Cached data can go stale. The real data changes but the cache still holds the old copy. You handle this with:
+
+- **TTL (time to live)**: entries expire after a set time.
+- **Invalidation**: delete the cached copy when the real data changes.
+
+The old joke: the two hard problems in computer science are naming things, cache invalidation, and off-by-one errors. Caching buys speed with complexity. Use it when the same data gets requested repeatedly, not by default.

@@ -1,0 +1,13 @@
+```
+fix(auth): guard against null user session in login flow
+```
+
+Body if you need detail:
+
+```
+Fix crash when session lookup returns null during login. Added null
+check before dereferencing user object; unauthenticated users now
+get the standard invalid-credentials error instead of a crash.
+```
+
+No repo access here, so adjust scope/`auth` to match your conventions. Check `git log --oneline -5` to confirm the message style.

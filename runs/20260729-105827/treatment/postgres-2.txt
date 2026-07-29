@@ -1,0 +1,60 @@
+I detect research/explanation intent — a how-to question. No code changes needed, so I'll answer directly.
+
+## Local PostgreSQL for a Node app
+
+### 1. Install and start PostgreSQL
+
+Fastest option — Docker:
+
+```bash
+docker run -d --name mydb -e POSTGRES_PASSWORD=secret -p 5432:5432 postgres:16
+```
+
+Or install natively:
+
+- macOS: `brew install postgresql@16 && brew services start postgresql@16`
+- Ubuntu: `sudo apt install postgresql && sudo systemctl start postgresql`
+
+### 2. Create the database
+
+```bash
+psql -h localhost -U postgres -c "CREATE DATABASE myapp;"
+```
+
+### 3. Install the Node driver
+
+```bash
+npm install pg
+```
+
+### 4. Connect from your app
+
+```js
+import pg from 'pg';
+
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const { rows } = await pool.query('SELECT 1');
+```
+
+Put the connection string in `.env` (never commit it):
+
+```
+DATABASE_URL=postgres://postgres:secret@localhost:5432/myapp
+```
+
+Load it with `process.loadEnvFile('.env')` (Node 20.6+) or the `dotenv` package.
+
+### 5. Verify
+
+```bash
+node -e "import('pg').then(async ({default: pg}) => { const p = new pg.Pool({connectionString: 'postgres://postgres:secret@localhost:5432/myapp'}); console.log((await p.query('SELECT version()')).rows[0]); await p.end(); })"
+```
+
+If that prints the PostgreSQL version, you're done.
+
+Notes:
+- Use `docker-compose.yml` instead of `docker run` if you want the database config checked into the repo for teammates.
+- Add migrations (node-pg-migrate, Drizzle, or Prisma) once you have more than one table — not before.

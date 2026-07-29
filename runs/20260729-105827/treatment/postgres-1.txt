@@ -1,0 +1,67 @@
+**Short version: use Docker. One command, no system install.**
+
+## 1. Start Postgres in Docker
+
+Prerequisite: Docker installed.
+
+```bash
+docker run --name my-pg \
+  -e POSTGRES_USER=app \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_DB=appdb \
+  -p 5432:5432 \
+  -v pgdata:/var/lib/postgresql/data \
+  -d postgres:16
+```
+
+The `-v` flag keeps your data when the container stops. Skip it for throwaway data.
+
+## 2. Connect from Node
+
+```bash
+npm install pg
+```
+
+```js
+// db.js
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: 'postgres://app:secret@localhost:5432/appdb',
+});
+
+module.exports = pool;
+```
+
+Usage:
+
+```js
+const pool = require('./db');
+const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+```
+
+Use `$1, $2` placeholders, never string concatenation — that prevents SQL injection.
+
+## 3. Verify it works
+
+```js
+// check.js — run with: node check.js
+const pool = require('./db');
+
+async function check() {
+  const { rows } = await pool.query('SELECT 1 AS ok');
+  console.log('connected:', rows[0].ok === 1);
+  await pool.end();
+}
+
+check();
+```
+
+## Alternative: native install
+
+- macOS: `brew install postgresql@16 && brew services start postgresql@16`
+- Ubuntu: `sudo apt install postgresql`
+
+Then create user and database with `createuser` and `createdb`. Docker is easier to reset and match production versions, so prefer it.
+
+Skipped: docker-compose file, migration tooling, ORM. Add them when you have more than one service or need schema versioning.

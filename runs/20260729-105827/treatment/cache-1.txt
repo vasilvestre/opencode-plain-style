@@ -1,0 +1,30 @@
+# What a cache is
+
+A cache is a storage layer that keeps a copy of data in a fast-to-access location, so you don't have to recompute or refetch it every time you need it.
+
+Example: your browser downloads a website's logo once, stores it on disk, and reuses it on every page load instead of downloading it again.
+
+# Why developers use caches
+
+The core trade: storage for speed. Reading from the cache is faster than the original source.
+
+| Without cache                      | With cache                       |
+| ---------------------------------- | -------------------------------- |
+| Query the database every request   | Read the result from memory      |
+| Call a slow API every time         | Store the response for 5 minutes |
+| Recompute an expensive calculation | Store the result, reuse it       |
+
+Concrete reasons:
+
+1. **Speed.** RAM is ~100x faster than disk and ~1000x faster than a network call.
+2. **Lower load.** The database or external API handles fewer requests.
+3. **Lower cost.** Fewer API calls and less compute time means a smaller bill.
+
+# The price
+
+Caches are never free. They introduce two problems:
+
+- **Stale data.** The cache holds an old copy. You must decide when to expire or refresh it ("cache invalidation").
+- **Complexity.** Another moving part that can fail or behave differently in production than locally.
+
+Common places you'll see caches: browser cache, HTTP cache (CDN), application-level cache (Redis, Memcached), CPU cache inside the processor. Same idea at every level.

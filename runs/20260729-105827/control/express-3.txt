@@ -1,0 +1,20 @@
+When an HTTP request hits an Express server, here's the flow:
+
+1. **TCP/HTTP layer** — Node's `http` server accepts the connection, parses the raw bytes into a request (`req` = `IncomingMessage`) and response (`res` = `ServerResponse`) pair, then calls Express's handler.
+
+2. **Express app** — Express wraps `req`/`res` with its own helpers (`res.json()`, `req.query`, etc.) and hands them to the middleware stack.
+
+3. **Middleware chain** — Each middleware runs in registration order. Each one either:
+   - calls `next()` → moves to the next layer,
+   - sends a response (`res.send(...)`) → chain ends,
+   - calls `next(err)` or throws → jumps straight to error-handling middleware.
+   
+   Common early layers: `express.json()` (body parsing), `cookieParser`, CORS, logging, auth.
+
+4. **Routing** — When the chain reaches the router, Express matches `req.method` + path (with params like `/users/:id`) against registered routes. First match runs its handler chain.
+
+5. **Handler** — Your route handler reads from `req`, does work, and sends a response. Writing to `res` and ending it (`res.send`, `res.json`, `res.end`) completes the cycle.
+
+6. **Fallthrough** — No matching route → Express's default 404 handler. Any `next(err)` → error middleware (signature `(err, req, res, next)`), or Express's default error handler (500 + stack in dev).
+
+Key points: middleware is sequential and order matters, the request is streaming (nothing buffers unless a parser does it), and once headers are sent you can't send again — that's what "headers already sent" errors mean.

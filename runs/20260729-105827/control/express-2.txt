@@ -1,0 +1,23 @@
+An HTTP request's journey through Express, end to end:
+
+**1. Node HTTP layer** — Express wraps Node's `http.createServer`. The OS accepts a TCP connection, Node's HTTP parser (llhttp) reads raw bytes, and builds the request once headers + body arrive. It calls Express's handler with two objects: `req` (IncomingMessage) and `res` (ServerResponse).
+
+**2. Express wraps req/res** — Express augments them with its own API: `req.query`, `req.params`, `req.body`, `res.json()`, `res.send()`, etc. (via prototype extension in `express.request`/`express.response`).
+
+**3. Middleware chain** — The request enters a stack of layers in registration order. Each middleware receives `(req, res, next)`:
+
+- `app.use()` middleware runs first (logging, CORS, `express.json()` body parsing...)
+- Each either **ends the request** (calls `res.send()` etc.) or calls `next()` to pass it along
+- Order matters: a middleware that responds without calling `next()` short-circuits everything after it
+
+**4. Router matching** — When the request reaches the router, Express iterates registered routes, matching on **path** and **HTTP method**. First match wins. Route patterns like `/users/:id` populate `req.params`; `?a=1` populates `req.query`.
+
+**5. Handler execution** — The matched handler runs (after any route-specific middleware), typically reads `req`, does work (DB call, etc.), and sends a response: `res.json(data)`, `res.status(404).send(...)`.
+
+**6. Response** — `res.send()` serializes the body, sets headers (Content-Type, Content-Length), and writes to the socket. Node flushes it over TCP and the connection is kept alive or closed per the `Connection` header.
+
+**7. Nothing matched / errors** —
+- No route matched → Express falls through to its default 404 handler
+- An error thrown in async code or passed via `next(err)` → skips remaining middleware and jumps to the first **error-handling middleware** (4-arg signature `(err, req, res, next)`); if none exists, Express sends a 500 with the stack trace
+
+Key mental model: Express is just an ordered list of functions; a request walks down the list until someone sends a response or the list runs out.

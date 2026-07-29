@@ -1,0 +1,83 @@
+Here's the setup, using Docker (simplest) and bare metal as an alternative.
+
+## 1. Run Postgres
+
+**Docker (recommended):**
+```bash
+docker run -d --name mydb \
+  -e POSTGRES_USER=myuser \
+  -e POSTGRES_PASSWORD=mypassword \
+  -e POSTGRES_DB=myapp \
+  -p 5432:5432 \
+  -v mydb_data:/var/lib/postgresql/data \
+  postgres:16
+```
+
+The `-v` flag keeps your data when the container restarts.
+
+**Or install directly:**
+```bash
+# Ubuntu/Debian
+sudo apt install postgresql
+sudo -u postgres createuser myuser -P
+sudo -u postgres createdb myapp -O myuser
+
+# macOS
+brew install postgresql@16
+brew services start postgresql@16
+createuser myuser -P
+createdb myapp -O myuser
+```
+
+## 2. Add the connection string
+
+Create a `.env` file in your project:
+
+```
+DATABASE_URL=postgres://myuser:mypassword@localhost:5432/myapp
+```
+
+Format: `postgres://<user>:<password>@<host>:<port>/<database>`.
+
+Add `.env` to your `.gitignore`.
+
+## 3. Connect from Node
+
+Install a driver and a dotenv loader:
+
+```bash
+npm install pg dotenv
+```
+
+```js
+// db.js
+require("dotenv").config();
+const { Pool } = require("pg");
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+module.exports = pool;
+```
+
+Use it:
+
+```js
+const pool = require("./db");
+
+const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+```
+
+Always use `$1` placeholders, never string concatenation. Concatenating values into SQL opens injection holes.
+
+## 4. Verify
+
+```bash
+node -e "require('./db').query('SELECT 1').then(() => console.log('connected'))"
+```
+
+If it prints `connected`, you're done.
+
+## Notes
+
+- For anything beyond a toy app, use a migration tool like `node-pg-migrate` or an ORM like Prisma or Drizzle instead of raw `CREATE TABLE` statements. Add it when you need schema versioning.
+- Skipped: connection pooling config, SSL, test database. The defaults (`pg` Pool) cover local dev. Add when you deploy.

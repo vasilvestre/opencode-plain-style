@@ -1,0 +1,19 @@
+A cache is a fast, temporary storage layer that keeps copies of expensive-to-get data so you don't have to recompute or refetch it.
+
+**Why developers use it:**
+
+- **Speed** — reading from RAM (or a local file) is orders of magnitude faster than hitting a database, disk, or network.
+- **Load reduction** — fewer repeated queries/API calls means your database or third-party service handles less traffic.
+- **Cost** — fewer compute cycles and API calls = lower bills.
+
+**Typical flow:**
+
+```
+request → check cache
+           ├─ hit  → return stored copy (fast)
+           └─ miss → fetch from source, store copy, return it
+```
+
+**Common examples:** CPU caches, Redis/Memcached for app data, browser caches for assets, HTTP `Cache-Control` headers, `@lru_cache` in Python.
+
+**The trade-off:** cached data can go stale. That's why caches have expiration (TTL) or invalidation rules — the famous hard part of caching is knowing when to throw the copy away.
