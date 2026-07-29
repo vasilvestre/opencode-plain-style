@@ -1,0 +1,4 @@
+node_modules/
+*.tgz
+# .opencode/ is the plugin payload of this package — negate the global ignore.
+!.opencode/
