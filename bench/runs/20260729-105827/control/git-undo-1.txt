@@ -1,0 +1,11 @@
+```
+git reset --soft HEAD~1
+```
+
+This uncommits the last commit but keeps all changes staged. If you want them unstaged too:
+
+```
+git reset HEAD~1
+```
+
+Note: only safe if you haven't pushed yet. If the commit is already on a shared remote, use `git revert HEAD` instead — it creates a new commit that undoes the changes without rewriting history.

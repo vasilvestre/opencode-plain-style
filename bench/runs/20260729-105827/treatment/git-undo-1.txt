@@ -1,0 +1,13 @@
+Run:
+
+```
+git reset --soft HEAD~1
+```
+
+This removes the last commit but keeps your changes staged. Use `--mixed` (the default, drop the flag) if you want them unstaged instead:
+
+```
+git reset HEAD~1
+```
+
+Warning: if you already pushed the commit, this rewrites history. You must force-push (`git push --force-with-lease`), which can break other people's clones. On a shared branch, use `git revert HEAD` instead — it adds a new commit that undoes the changes.

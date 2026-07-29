@@ -1,0 +1,8 @@
+```
+fix(auth): prevent null pointer crash in login flow
+
+Guard against null user/session object before dereferencing during
+login, returning an auth error instead of crashing.
+```
+
+Skipped: body detail (root cause, affected callers) — add when you share the actual diff so the message names the real null source.

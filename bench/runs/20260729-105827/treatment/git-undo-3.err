@@ -1,0 +1,7 @@
+[0m
+> Sisyphus - ultraworker · k3-256k
+[0m
+[0m$ [0mrtk ls /home/vsilvestre/.claude/RTK.md /tmp/RTK.md 2>/dev/null; true
+-rw-rw-r-- 1 vsilvestre vsilvestre 964 Mar 30 15:00 /home/vsilvestre/.claude/RTK.md
+[0m
+[0m→ [0mRead /home/vsilvestre/.claude/RTK.md

@@ -1,0 +1,5 @@
+```
+fix(auth): guard against null user session in login flow
+```
+
+One line, conventional format, says what broke and where. Skipped body/footer — add when reviewers ask for the crash details or a ticket reference.

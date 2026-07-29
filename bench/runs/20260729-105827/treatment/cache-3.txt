@@ -1,0 +1,18 @@
+A cache is a fast storage layer that holds copies of data so you don't have to fetch or recompute it again. It sits between you and a slower source — a database, a network API, a filesystem, a CPU's main memory.
+
+**Why developers use it:**
+
+- **Speed.** Reading from memory takes nanoseconds; a database query or network call takes milliseconds. Serving cached results is often 100–1000× faster.
+- **Load reduction.** If a popular query hits the cache instead of the database, the database handles fewer requests and stays healthy under traffic.
+- **Cost.** Fewer API calls and less compute means lower bills (third-party APIs often charge per request).
+
+**Common examples:**
+
+- CPU cache: stores recently used data close to the processor.
+- Browser cache: keeps images and scripts locally so pages load without re-downloading.
+- Redis/Memcached: in-memory stores for database query results or session data.
+- HTTP caching: CDNs serve cached copies of your site near the user.
+
+**The trade-off:** cached data can go stale. If the underlying data changes, the cache must be updated or invalidated. This is the classic hard problem — hence the joke: "There are only two hard things in computer science: cache invalidation and naming things."
+
+Rule of thumb: cache things that are expensive to get, read often, and change rarely.

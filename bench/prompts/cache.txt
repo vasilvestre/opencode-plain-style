@@ -1,0 +1,1 @@
+Explain what a cache is and why developers use it.

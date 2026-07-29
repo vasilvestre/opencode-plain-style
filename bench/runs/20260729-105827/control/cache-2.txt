@@ -1,0 +1,33 @@
+I detect a research/explain intent — no code involved. Direct answer.
+
+## What a cache is
+
+A cache is a fast, usually smaller storage layer that keeps copies of data so future requests for that data are served quickly, without re-doing the expensive work (disk read, network call, DB query, computation).
+
+The core idea: **memory hierarchy**. Fast storage is expensive and small (CPU registers, RAM); slow storage is cheap and big (disk, network). A cache sits in front of the slow source and holds the stuff you actually use.
+
+## Why developers use it
+
+1. **Speed** — RAM is ~100x faster than disk, and local memory is ~1000x faster than a network round-trip. Serving from cache turns 100ms queries into microseconds.
+
+2. **Cost/load reduction** — every cache hit is work the database or upstream service *doesn't* do. This lets a cheap cache layer absorb traffic that would otherwise require scaling expensive infrastructure.
+
+3. **Predictable latency** — caches smooth out tail latency caused by slow backends.
+
+## Common examples
+
+- **CPU caches** (L1/L2/L3) — hardware caching of RAM
+- **Browser cache** — stores images/JS so pages don't re-download
+- **HTTP/CDN caches** — serve static content from edge servers near the user
+- **Application caches** — Redis/Memcached holding query results or session data
+- **Memoization** — caching function results in code (`@lru_cache`, `Map`)
+
+## The catch
+
+The famous quote exists for a reason: *"There are only two hard things in CS: cache invalidation and naming things."* Cached data can go **stale** — the source changes, the cache doesn't. So every cache needs a strategy:
+
+- **TTL** — expire entries after N seconds (simple, may serve stale data)
+- **Explicit invalidation** — delete/update the cache when the source changes (correct, but easy to forget a path)
+- **Write-through / write-around** — update cache and source together
+
+Rule of thumb: cache things that are **read often, written rarely, and tolerable if slightly stale**. Don't cache what's cheap to compute or must always be fresh.

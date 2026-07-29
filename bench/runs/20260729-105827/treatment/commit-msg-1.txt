@@ -1,0 +1,8 @@
+```
+Fix null pointer crash in login flow
+
+Guard against a null user object before reading its credentials.
+The crash hit users whose session expired mid-login.
+```
+
+No diff to work from, so this is a template. Swap in the actual cause once you have it — the "why" line is what makes the message useful.

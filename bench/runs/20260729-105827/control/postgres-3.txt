@@ -1,0 +1,55 @@
+Explaining — no codebase work needed.
+
+## 1. Install & run Postgres
+
+Easiest: Docker.
+
+```bash
+docker run -d --name pg \
+  -e POSTGRES_USER=app -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=appdb \
+  -p 5432:5432 postgres:16
+```
+
+(Or `brew install postgresql@16 && brew services start postgresql@16` on macOS.)
+
+## 2. Install the driver
+
+```bash
+npm install pg
+```
+
+## 3. Connect
+
+```js
+// db.js
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+module.exports = pool;
+```
+
+```bash
+# .env
+DATABASE_URL=postgres://app:secret@localhost:5432/appdb
+```
+
+## 4. Use it
+
+```js
+const pool = require('./db');
+
+const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+```
+
+Always use `$1` placeholders — never string-interpolate values (SQL injection).
+
+## Notes
+
+- Use a `Pool`, not single `Client` — handles connections for you.
+- Put `.env` in `.gitignore`; load it with `node --env-file=.env app.js` (Node 20+, no dotenv needed).
+- Migrations: when you outgrow `CREATE TABLE` in a setup script, use `node-pg-migrate` — not before.
+
+Skipped: ORM, migration tooling, docker-compose. Add an ORM (Prisma/Drizzle) when query boilerplate hurts; add compose when you have 2+ services.

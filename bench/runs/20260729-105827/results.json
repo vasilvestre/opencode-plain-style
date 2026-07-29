@@ -1,0 +1,170 @@
+{
+  "runsDir": "/home/vsilvestre/.config/opencode/plain-style-bench/runs/20260729-105827",
+  "generatedAt": "2026-07-29T09:20:08.784Z",
+  "summary": {
+    "control": {
+      "n": 15,
+      "bannedFreePct": 80,
+      "hedgeFreePct": 93.3,
+      "noLongSentencesPct": 73.3,
+      "fullyCompliantPct": 66.7,
+      "meanPassiveHits": 0.2,
+      "meanWords": 131.7
+    },
+    "treatment": {
+      "n": 15,
+      "bannedFreePct": 100,
+      "hedgeFreePct": 100,
+      "noLongSentencesPct": 93.3,
+      "fullyCompliantPct": 93.3,
+      "meanPassiveHits": 0.2,
+      "meanWords": 150.9
+    }
+  },
+  "byProbe": {
+    "cache": {
+      "control": {
+        "n": 3,
+        "bannedFreePct": 66.7,
+        "hedgeFreePct": 66.7,
+        "noLongSentencesPct": 66.7,
+        "fullyCompliantPct": 66.7,
+        "meanPassiveHits": 0.7,
+        "meanWords": 210.7
+      },
+      "treatment": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 66.7,
+        "fullyCompliantPct": 66.7,
+        "meanPassiveHits": 0.7,
+        "meanWords": 213.7
+      }
+    },
+    "commit-msg": {
+      "control": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0,
+        "meanWords": 24.3
+      },
+      "treatment": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0,
+        "meanWords": 32.7
+      }
+    },
+    "express": {
+      "control": {
+        "n": 3,
+        "bannedFreePct": 33.3,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 33.3,
+        "fullyCompliantPct": 0,
+        "meanPassiveHits": 0.3,
+        "meanWords": 308.7
+      },
+      "treatment": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0.3,
+        "meanWords": 304
+      }
+    },
+    "git-undo": {
+      "control": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 66.7,
+        "fullyCompliantPct": 66.7,
+        "meanPassiveHits": 0,
+        "meanWords": 32
+      },
+      "treatment": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0,
+        "meanWords": 76.3
+      }
+    },
+    "postgres": {
+      "control": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0,
+        "meanWords": 83
+      },
+      "treatment": {
+        "n": 3,
+        "bannedFreePct": 100,
+        "hedgeFreePct": 100,
+        "noLongSentencesPct": 100,
+        "fullyCompliantPct": 100,
+        "meanPassiveHits": 0,
+        "meanWords": 127.7
+      }
+    }
+  },
+  "rows": [
+    {
+      "rule": "Banned-intensifier-free",
+      "control": 80,
+      "treatment": 100,
+      "deltaPts": 20,
+      "kind": "percent"
+    },
+    {
+      "rule": "Hedge-free",
+      "control": 93.3,
+      "treatment": 100,
+      "deltaPts": 6.7,
+      "kind": "percent"
+    },
+    {
+      "rule": "Sentences ≤25 words",
+      "control": 73.3,
+      "treatment": 93.3,
+      "deltaPts": 20,
+      "kind": "percent"
+    },
+    {
+      "rule": "Fully compliant",
+      "control": 66.7,
+      "treatment": 93.3,
+      "deltaPts": 26.6,
+      "kind": "percent"
+    },
+    {
+      "rule": "Mean passive hits",
+      "control": 0.2,
+      "treatment": 0.2,
+      "deltaPts": 0,
+      "kind": "mean"
+    },
+    {
+      "rule": "Mean words",
+      "control": 131.7,
+      "treatment": 150.9,
+      "deltaPts": 19.2,
+      "kind": "mean"
+    }
+  ]
+}

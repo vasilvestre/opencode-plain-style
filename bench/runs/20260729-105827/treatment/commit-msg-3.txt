@@ -1,0 +1,3 @@
+`Fix null pointer crash in login flow when user lookup fails`
+
+The subject states what changed and why. If you have a root cause (e.g. missing session token), use it: `Fix null pointer crash in login flow when session token is missing`.

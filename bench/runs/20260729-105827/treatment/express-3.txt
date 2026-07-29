@@ -1,0 +1,50 @@
+When an HTTP request hits an Express server, it passes through a fixed pipeline. Here is the flow, step by step.
+
+## 1. Node's HTTP layer receives the request
+
+Express sits on top of Node's built-in `http` module. The OS accepts the TCP connection, Node parses the raw bytes (method, path, headers), and builds two objects:
+
+- `req` (an `IncomingMessage`)
+- `res` (a `ServerResponse`)
+
+Node hands both to Express via the listener you created with `app.listen()`.
+
+## 2. Express wraps the request
+
+Express augments `req` and `res` with its own API: `req.query`, `req.params`, `res.json()`, `res.send()`, and so on. Underneath, they are still the same Node objects.
+
+## 3. The request walks the middleware chain
+
+Express keeps an ordered stack of functions registered with `app.use()` and route methods (`app.get`, `app.post`, ...). It walks the stack top to bottom:
+
+1. Express checks whether the entry matches the request path and method.
+2. If it matches, Express calls the function with `(req, res, next)`.
+3. That function either:
+   - calls `next()` → the request moves to the next matching entry, or
+   - sends a response (`res.send()`, `res.json()`, ...) → the chain stops here, or
+   - calls `next(err)` → Express skips everything until an error-handling middleware.
+
+Typical order: logging, body parsing (`express.json()`), auth, then your route handlers.
+
+## 4. A route handler sends the response
+
+Your handler runs, for example:
+
+```js
+app.get('/users/:id', (req, res) => {
+  res.json({ id: req.params.id });
+});
+```
+
+`res.json()` serializes the object, sets `Content-Type: application/json`, and calls `res.end()` on Node's response object. Writing to `res` after this point throws.
+
+## 5. Node sends the response back
+
+Node flushes headers and body over the socket. For HTTP/1.1 keep-alive, the connection stays open for the next request; otherwise it closes.
+
+## 6. Fallbacks
+
+- No route matched → Express runs its default 404 handler (or yours, registered last).
+- An error was passed to `next(err)` or thrown → Express runs your error middleware, the 4-argument function `(err, req, res, next)`. Without one, Express sends a 500 with the stack trace (in development).
+
+In short: **Node parses → Express wraps → middleware chain runs in order → a handler sends the response → Node ships the bytes.**

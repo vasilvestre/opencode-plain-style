@@ -1,0 +1,37 @@
+When an HTTP request reaches an Express server, it flows through this pipeline:
+
+1. **Node's HTTP server receives it.** Node parses the raw bytes into `req` (request) and `res` (response) objects, then calls your Express app as a handler function.
+
+2. **Express wraps the request.** Express extends `req` and `res` with its own helpers (like `req.query`, `res.json()`), then starts walking the middleware stack.
+
+3. **Middleware runs in registration order.** Each middleware gets `(req, res, next)`. It can:
+   - Modify `req`/`res` (for example, `express.json()` parses the body into `req.body`)
+   - Send a response and end the chain
+   - Call `next()` to hand off to the next middleware
+
+4. **Route matching.** When the stack reaches the router, Express compares the request's HTTP method and path against your routes (`app.get('/users', ...)`). The first match runs its handler.
+
+5. **The handler responds.** The handler calls `res.send()`, `res.json()`, or similar. Express writes the status line, headers, and body to the socket, then closes or keeps the connection alive.
+
+6. **Error handling.** If any middleware calls `next(err)` or throws, Express skips the remaining normal middleware and jumps to the first error-handling middleware — one with four parameters: `(err, req, res, next)`. If none exists, Express sends a default 500 response.
+
+Example:
+
+```js
+const express = require('express');
+const app = express();
+
+app.use(express.json());          // step 3: parses JSON body
+
+app.get('/users/:id', (req, res) => {  // step 4: route match
+  res.json({ id: req.params.id });     // step 5: response
+});
+
+app.use((err, req, res, next) => {     // step 6: error handler
+  res.status(500).json({ error: err.message });
+});
+
+app.listen(3000);                   // step 1: Node HTTP server
+```
+
+Key point: the order you register middleware and routes defines the order they execute. Register `express.json()` after your routes, and your handlers never see a parsed body.
