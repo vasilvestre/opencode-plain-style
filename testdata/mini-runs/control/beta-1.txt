@@ -1,0 +1,1 @@
+This line is very plain and very long and should stay here to fail the benchmark with enough extra words to push the sentence beyond the threshold that the scorer uses for long prose lines in this control sample.
