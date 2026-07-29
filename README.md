@@ -46,6 +46,42 @@ Total plugin code: about 25 lines, no dependencies.
 Note: the hook is marked experimental in opencode.
 If opencode renames it, the plugin fails loudly at startup rather than injecting nothing.
 
+## Example output
+
+Same blind prompt, same model, same agent: "Describe what happens when an HTTP request reaches an Express server."
+
+Without the plugin (control), the agent writes dense prose with vague intensifiers:
+
+```text
+Express is really just a callback you handed to http.createServer() —
+app.listen(port) is sugar for http.createServer(app).listen(port).
+It's middleware all the way down: routes are just middleware that
+happens to match on path + method.
+```
+
+With the plugin (treatment), the same agent writes numbered steps and adds an example:
+
+```text
+1. Node's HTTP server receives it. Node parses the raw bytes into req
+   (request) and res (response) objects, then calls your Express app
+   as a handler function.
+2. Express wraps the request. Express extends req and res with its own
+   helpers (like req.query, res.json()), then starts walking the
+   middleware stack.
+
+Example:
+
+const express = require('express');
+const app = express();
+app.use(express.json());          // parses JSON body
+app.get('/users/:id', (req, res) => {
+  res.json({ id: req.params.id });
+});
+```
+
+Both excerpts are real benchmark outputs, unedited.
+Full transcripts: [bench/runs/20260729-105827/](bench/runs/20260729-105827/).
+
 ## Benchmark
 
 A/B design: same agent, same pinned model, two config replicas identical except this plugin.
