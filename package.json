@@ -1,20 +1,20 @@
 {
-  "name": "@vsilvestre/opencode-plain-style",
+  "name": "@vasilvestre/opencode-plain-style",
   "version": "0.1.0",
   "description": "Plain-language writing rules for opencode agents, injected into every system prompt. Enforces ISO 24495-1 principles on commits, comments, docs, and chat prose.",
   "keywords": ["opencode-plugin", "opencode", "plain-language", "writing", "style-guide"],
   "license": "MIT",
   "author": {
-    "name": "vsilvestre",
-    "url": "https://github.com/vsilvestre"
+    "name": "vasilvestre",
+    "url": "https://github.com/vasilvestre"
   },
-  "homepage": "https://github.com/vsilvestre/opencode-plain-style",
+  "homepage": "https://github.com/vasilvestre/opencode-plain-style",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vsilvestre/opencode-plain-style.git"
+    "url": "git+https://github.com/vasilvestre/opencode-plain-style.git"
   },
   "bugs": {
-    "url": "https://github.com/vsilvestre/opencode-plain-style/issues"
+    "url": "https://github.com/vasilvestre/opencode-plain-style/issues"
   },
   "type": "module",
   "main": "./.opencode/plugins/plain-style.mjs",

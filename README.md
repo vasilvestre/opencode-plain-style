@@ -30,7 +30,7 @@ Add the package to the `plugin` array in `~/.config/opencode/opencode.json`:
 
 ```json
 {
-  "plugin": ["@vsilvestre/opencode-plain-style"]
+  "plugin": ["@vasilvestre/opencode-plain-style"]
 }
 ```
 
