@@ -37,6 +37,15 @@ const emptyBucket = () => ({
   fullyCompliant: 0,
   passiveCount: 0,
   words: 0,
+  nextStep: 0,
+  listOver5Free: 0,
+  preambleCloserFree: 0,
+  emDashFree: 0,
+  transitionOpenerFree: 0,
+  repeatedOpenerFree: 0,
+  jargonFree: 0,
+  decorativeAdjectiveFree: 0,
+  googleStyleFree: 0,
 });
 
 const addReport = (bucket, report) => {
@@ -47,6 +56,15 @@ const addReport = (bucket, report) => {
   bucket.fullyCompliant += report.compliant ? 1 : 0;
   bucket.passiveCount += report.passiveCount;
   bucket.words += report.words;
+  bucket.nextStep += report.nextStep ? 1 : 0;
+  bucket.listOver5Free += report.listOver5 === 0 ? 1 : 0;
+  bucket.preambleCloserFree += report.preambleClosers.length === 0 ? 1 : 0;
+  bucket.emDashFree += report.emDash === 0 ? 1 : 0;
+  bucket.transitionOpenerFree += report.transitionOpeners.length === 0 ? 1 : 0;
+  bucket.repeatedOpenerFree += report.repeatedOpeners.length === 0 ? 1 : 0;
+  bucket.jargonFree += report.jargon.length === 0 ? 1 : 0;
+  bucket.decorativeAdjectiveFree += report.decorativeAdjectives.length === 0 ? 1 : 0;
+  bucket.googleStyleFree += report.googleStyle.length === 0 ? 1 : 0;
 };
 
 const finalizeBucket = (bucket) => ({
@@ -57,6 +75,15 @@ const finalizeBucket = (bucket) => ({
   fullyCompliantPct: bucket.n ? round1((bucket.fullyCompliant / bucket.n) * 100) : 0,
   meanPassiveHits: bucket.n ? round1(bucket.passiveCount / bucket.n) : 0,
   meanWords: bucket.n ? round1(bucket.words / bucket.n) : 0,
+  nextStepPct: bucket.n ? round1((bucket.nextStep / bucket.n) * 100) : 0,
+  listOver5FreePct: bucket.n ? round1((bucket.listOver5Free / bucket.n) * 100) : 0,
+  preambleCloserFreePct: bucket.n ? round1((bucket.preambleCloserFree / bucket.n) * 100) : 0,
+  emDashFreePct: bucket.n ? round1((bucket.emDashFree / bucket.n) * 100) : 0,
+  transitionOpenerFreePct: bucket.n ? round1((bucket.transitionOpenerFree / bucket.n) * 100) : 0,
+  repeatedOpenerFreePct: bucket.n ? round1((bucket.repeatedOpenerFree / bucket.n) * 100) : 0,
+  jargonFreePct: bucket.n ? round1((bucket.jargonFree / bucket.n) * 100) : 0,
+  decorativeAdjectiveFreePct: bucket.n ? round1((bucket.decorativeAdjectiveFree / bucket.n) * 100) : 0,
+  googleStyleFreePct: bucket.n ? round1((bucket.googleStyleFree / bucket.n) * 100) : 0,
 });
 
 const aggregate = (runsDir) => {
@@ -141,6 +168,69 @@ const aggregate = (runsDir) => {
       treatment: summary.treatment.meanWords,
       deltaPts: round1(summary.treatment.meanWords - summary.control.meanWords),
       kind: 'mean',
+    },
+    {
+      rule: 'Next-step present',
+      control: summary.control.nextStepPct,
+      treatment: summary.treatment.nextStepPct,
+      deltaPts: round1(summary.treatment.nextStepPct - summary.control.nextStepPct),
+      kind: 'percent',
+    },
+    {
+      rule: 'List blocks ≤5',
+      control: summary.control.listOver5FreePct,
+      treatment: summary.treatment.listOver5FreePct,
+      deltaPts: round1(summary.treatment.listOver5FreePct - summary.control.listOver5FreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Preamble-closer-free',
+      control: summary.control.preambleCloserFreePct,
+      treatment: summary.treatment.preambleCloserFreePct,
+      deltaPts: round1(summary.treatment.preambleCloserFreePct - summary.control.preambleCloserFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Em-dash-free',
+      control: summary.control.emDashFreePct,
+      treatment: summary.treatment.emDashFreePct,
+      deltaPts: round1(summary.treatment.emDashFreePct - summary.control.emDashFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Transition-opener-free',
+      control: summary.control.transitionOpenerFreePct,
+      treatment: summary.treatment.transitionOpenerFreePct,
+      deltaPts: round1(summary.treatment.transitionOpenerFreePct - summary.control.transitionOpenerFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Repeated-opener-free',
+      control: summary.control.repeatedOpenerFreePct,
+      treatment: summary.treatment.repeatedOpenerFreePct,
+      deltaPts: round1(summary.treatment.repeatedOpenerFreePct - summary.control.repeatedOpenerFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Jargon-free',
+      control: summary.control.jargonFreePct,
+      treatment: summary.treatment.jargonFreePct,
+      deltaPts: round1(summary.treatment.jargonFreePct - summary.control.jargonFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Decorative-adjective-free',
+      control: summary.control.decorativeAdjectiveFreePct,
+      treatment: summary.treatment.decorativeAdjectiveFreePct,
+      deltaPts: round1(summary.treatment.decorativeAdjectiveFreePct - summary.control.decorativeAdjectiveFreePct),
+      kind: 'percent',
+    },
+    {
+      rule: 'Google-style-free',
+      control: summary.control.googleStyleFreePct,
+      treatment: summary.treatment.googleStyleFreePct,
+      deltaPts: round1(summary.treatment.googleStyleFreePct - summary.control.googleStyleFreePct),
+      kind: 'percent',
     },
   ];
 
