@@ -55,15 +55,55 @@ The pattern: every "before" hides a fact or an action. Every "after" states it.
 
 ## Install
 
-Add the package to the `plugin` array in `~/.config/opencode/opencode.json`:
+### Requirements
 
-```json
-{
-  "plugin": ["@vasilvestre/opencode-plain-style"]
-}
-```
+- opencode installed and runnable (`opencode --version` prints a version).
+- A config file at `~/.config/opencode/opencode.json`. Create it if it does not exist.
 
-Restart opencode. The plugin loads at startup and works for the primary agent and every subagent.
+### Steps
+
+1. Open `~/.config/opencode/opencode.json`.
+2. Add the package name to the `plugin` array:
+
+   ```json
+   {
+     "plugin": ["@vasilvestre/opencode-plain-style"]
+   }
+   ```
+
+   opencode downloads the package from npm on the next start. You do not need to run `npm install`.
+
+3. Restart opencode.
+4. Verify the install. Ask the agent to describe a process. The answer must follow the rules: numbered steps, active voice, sentences of 25 words or fewer.
+
+The plugin loads at startup and works for the primary agent and every subagent.
+
+### Install from a local copy
+
+Use this to test changes before publishing, or to run a fork.
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/vasilvestre/opencode-plain-style.git
+   ```
+
+2. Point the config at the local plugin file:
+
+   ```json
+   {
+     "plugin": ["file:///absolute/path/to/opencode-plain-style/.opencode/plugins/plain-style.mjs"]
+   }
+   ```
+
+   The path must be absolute and must point at the `.mjs` file, not the directory.
+
+3. Restart opencode.
+
+### Uninstall
+
+1. Remove the entry from the `plugin` array in `~/.config/opencode/opencode.json`.
+2. Restart opencode.
 
 ## How it works
 
