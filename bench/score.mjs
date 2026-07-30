@@ -7,6 +7,17 @@ const PASSIVE = /\b(is|are|was|were|be|been|being)\s+[a-z]+(ed|en)\b/gi;
 const ANSI = /\x1b\[[0-9;]*m/g;
 const CODE_FENCE = /```[\s\S]*?```/g;
 const SENTENCE = /[^.!?]+[.!?]+/g;
+const LIST_ITEM = /^\s*(?:[-*]|\d+\.)\s/;
+const PREAMBLE = /^(Great question|Sure[,.!]|Let me|I'll|Looking at)/i;
+const CLOSER = /(Let me know|Hope this helps|Happy to clarify|Feel free)/i;
+const TRANSITION = /^(Additionally|Furthermore|Moreover|In addition|Notably)\b/i;
+const JARGON = ['leverage', 'utilize', 'methodology', 'functionality'];
+const DECORATIVE = ['robust', 'comprehensive', 'seamless', 'vibrant', 'dynamic', 'meticulous'];
+const GOOGLE_STYLE = [
+  ['please', /\bplease\b/i],
+  ['etc', /\betc\b/],
+  ['and so on', /\band so on\b/i],
+];
 
 const stripAnsi = (text) => text.replace(ANSI, '');
 const stripCodeFences = (text) => text.replace(CODE_FENCE, '');
@@ -29,6 +40,46 @@ const uniqueMatches = (text, words) => {
   return hits;
 };
 
+const listBlocksOver5 = (body) => {
+  let blocks = 0;
+  let run = 0;
+  for (const line of body.split(/\r?\n/)) {
+    if (LIST_ITEM.test(line)) {
+      run += 1;
+    } else {
+      if (run > 5) blocks += 1;
+      run = 0;
+    }
+  }
+  return run > 5 ? blocks + 1 : blocks;
+};
+
+const preambleClosers = (text, sentences) => {
+  const hits = [];
+  const firstProse = cleanText(text)
+    .split(/\r?\n/)
+    .find((line) => line.trim() && isProseLine(line));
+  const opener = firstProse?.trimStart().match(PREAMBLE);
+  if (opener) hits.push(opener[1]);
+  for (const sentence of sentences) {
+    if (CLOSER.test(sentence)) hits.push(sentence.replace(/[.!?]+$/, '').trim());
+  }
+  return hits;
+};
+
+const firstWord = (sentence) => (sentence.trim().match(/\S+/) || [''])[0];
+
+const repeatedOpeners = (sentences) => {
+  const hits = [];
+  for (let i = 1; i < sentences.length; i += 1) {
+    const prev = firstWord(sentences[i - 1]);
+    if (prev && prev.toLowerCase() === firstWord(sentences[i]).toLowerCase()) {
+      hits.push(prev);
+    }
+  }
+  return hits;
+};
+
 export const analyzeText = (text) => {
   const body = cleanText(text);
   const sentences = sentenceFragments(text);
@@ -36,6 +87,7 @@ export const analyzeText = (text) => {
   const banned = uniqueMatches(body, BANNED);
   const hedge = uniqueMatches(body, HEDGE);
   const passiveMatches = body.match(PASSIVE) || [];
+  const nonEmptyLines = body.split(/\r?\n/).filter((line) => line.trim());
 
   return {
     banned,
@@ -47,6 +99,18 @@ export const analyzeText = (text) => {
     words: countWords(body),
     sentences: sentences.length,
     compliant: banned.length === 0 && hedge.length === 0 && longSentences.length === 0,
+    nextStep: nonEmptyLines.length > 0 && /^Next:\s+\S/.test(nonEmptyLines[nonEmptyLines.length - 1]),
+    listOver5: listBlocksOver5(body),
+    preambleClosers: preambleClosers(text, sentences),
+    emDash: (body.match(/[—–]/g) || []).length,
+    transitionOpeners: sentences.flatMap((sentence) => {
+      const match = sentence.trimStart().match(TRANSITION);
+      return match ? [match[1]] : [];
+    }),
+    repeatedOpeners: repeatedOpeners(sentences),
+    jargon: uniqueMatches(body, JARGON),
+    decorativeAdjectives: uniqueMatches(body, DECORATIVE),
+    googleStyle: GOOGLE_STYLE.filter(([, re]) => re.test(body)).map(([label]) => label),
   };
 };
 
