@@ -55,10 +55,12 @@ enabled_mcps() {
 }
 
 # gen_config <arm> <dst>: copy live opencode.jsonc with all mcp.*.enabled=false;
-# control also drops the ./plugins/plain-style.mjs plugin entry.
+# control also drops the ./plugins/plain-style.mjs plugin entry; treatment with
+# a candidate file repoints plain-style entries at the local copy.
 gen_config() {
-  local arm="$1" dst="$2"
-  SRC="$LIVE/opencode.jsonc" DST="$dst" ARM="$arm" bun -e '
+  local arm="$1" dst="$2" cand=0
+  [[ "$arm" == treatment && -f "$BENCH/plain-style.candidate.md" ]] && cand=1
+  SRC="$LIVE/opencode.jsonc" DST="$dst" ARM="$arm" CAND="$cand" bun -e '
     const fs = require("fs");
     const src = fs.readFileSync(process.env.SRC, "utf8");
     // JSONC: drop full-line // comments only (never touch inline content);
@@ -68,6 +70,8 @@ gen_config() {
     for (const k of Object.keys(cfg.mcp ?? {})) cfg.mcp[k].enabled = false;
     if (process.env.ARM === "control")
       cfg.plugin = (cfg.plugin ?? []).filter(p => !String(p).includes("plain-style"));
+    else if (process.env.CAND === "1")
+      cfg.plugin = (cfg.plugin ?? []).map(p => String(p).includes("plain-style") ? "./plugins/plain-style.mjs" : p);
     fs.writeFileSync(process.env.DST, JSON.stringify(cfg, null, 2) + "\n");
   '
   # Pass 2: plugins (oh-my-openagent) inject extra MCPs; a user-config entry
@@ -126,6 +130,15 @@ build_replica() {
     fi
     ln -sfn "$f" "$dir/plugins/$base"
   done
+  # Candidate mode: treatment gets the repo plugin + candidate rulebook as
+  # REAL files — ESM realpath resolution would read plain-style.md through a
+  # symlink and bypass the candidate. rm first: cp onto a symlink would
+  # overwrite the LIVE target.
+  if [[ "$arm" == treatment && -f "$BENCH/plain-style.candidate.md" ]]; then
+    rm -f "$dir/plugins/plain-style.mjs" "$dir/plugins/plain-style.md"
+    cp "$BENCH/../.opencode/plugins/plain-style.mjs" "$dir/plugins/plain-style.mjs"
+    cp "$BENCH/plain-style.candidate.md" "$dir/plugins/plain-style.md"
+  fi
   gen_config "$arm" "$dir/opencode.jsonc"
   gen_omo_config "$arm" "$dir/oh-my-openagent.json"
 }
