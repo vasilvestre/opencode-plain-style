@@ -1,5 +1,9 @@
 # opencode-plain-style
 
+[![CI](https://github.com/vasilvestre/opencode-plain-style/actions/workflows/ci.yml/badge.svg)](https://github.com/vasilvestre/opencode-plain-style/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@vasilvestre/opencode-plain-style)](https://www.npmjs.com/package/@vasilvestre/opencode-plain-style)
+[![license](https://img.shields.io/npm/l/@vasilvestre/opencode-plain-style)](LICENSE)
+
 Plain-language writing rules for opencode agents, injected into every system prompt.
 
 **Measured effect: fully-compliant prose rises from 66.7% to 93.3% of runs (+26.6 points).**
