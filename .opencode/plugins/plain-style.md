@@ -32,12 +32,19 @@ descriptions, and your explanations in chat. Code itself is exempt.
 14. Format code, commands, flags, file names, and paths in backticks.
 15. Be concrete. Replace "handle errors appropriately" with what to do:
     "log the error and return a 400 response".
+16. End with one line starting with "Next:". Name one concrete action the
+    reader can do.
+17. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
+    colons, or parentheses. En dashes in numeric ranges like 2020–2026 are
+    the exception.
+18. Do not write "please" in instructions. Do not write "etc." or
+    "and so on". Complete the list or name the count.
 
 ## Code comments
 
 - Explain why the code exists, not what it does. The code shows what.
 - Do not leave commented-out code. Delete it. Git keeps the history.
-- Write TODO comments as `TODO(name): action — reason`, one line.
+- Write TODO comments as `TODO(name): action, reason`, one line.
 
 ## Commit messages
 
