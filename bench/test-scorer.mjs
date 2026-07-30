@@ -8,11 +8,34 @@ import { analyzeFile, analyzeText } from './score.mjs';
 const root = new URL('.', import.meta.url).pathname;
 const compliant = path.join(root, 'fixtures', 'compliant.txt');
 const violating = path.join(root, 'fixtures', 'violating.txt');
+const candidateCompliant = path.join(root, 'fixtures', 'candidate-compliant.txt');
+const candidateViolating = path.join(root, 'fixtures', 'candidate-violating.txt');
+
+const assertNewFields = (report, expected, label) => {
+  assert.equal(report.nextStep, expected.nextStep, `${label}: nextStep`);
+  assert.equal(report.listOver5, expected.listOver5, `${label}: listOver5`);
+  assert.deepEqual(report.preambleClosers, expected.preambleClosers, `${label}: preambleClosers`);
+  assert.equal(report.emDash, expected.emDash, `${label}: emDash`);
+  assert.deepEqual(report.transitionOpeners, expected.transitionOpeners, `${label}: transitionOpeners`);
+  assert.deepEqual(report.repeatedOpeners, expected.repeatedOpeners, `${label}: repeatedOpeners`);
+  assert.deepEqual(report.jargon, expected.jargon, `${label}: jargon`);
+  assert.deepEqual(report.decorativeAdjectives, expected.decorativeAdjectives, `${label}: decorativeAdjectives`);
+  assert.deepEqual(report.googleStyle, expected.googleStyle, `${label}: googleStyle`);
+};
 
 const run = () => {
   const compliantReport = analyzeFile(compliant);
   assert.equal(compliantReport.compliant, true);
   assert.deepEqual(compliantReport.banned, []);
+  assert.deepEqual(compliantReport.hedge, []);
+  assert.equal(compliantReport.longSentences, 0);
+
+  const violatingReport = analyzeFile(violating);
+  assert.equal(violatingReport.compliant, false);
+  assert.ok(violatingReport.banned.includes('very'));
+  assert.ok(violatingReport.banned.includes('just'));
+  assert.ok(violatingReport.hedge.includes('should'));
+  assert.ok(violatingReport.longSentences >= 1);
 
   const jsonOutput = execFileSync(process.execPath, ['score.mjs', '--json', violating], {
     cwd: root,
@@ -26,6 +49,32 @@ const run = () => {
   assert.ok(parsed[0].banned.includes('just'));
   assert.ok(parsed[0].hedge.includes('should'));
   assert.ok(parsed[0].longSentences >= 1);
+
+  const candidateCompliantReport = analyzeText(fs.readFileSync(candidateCompliant, 'utf8'));
+  assertNewFields(candidateCompliantReport, {
+    nextStep: true,
+    listOver5: 0,
+    preambleClosers: [],
+    emDash: 0,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, 'candidate-compliant.txt');
+
+  const candidateViolatingReport = analyzeText(fs.readFileSync(candidateViolating, 'utf8'));
+  assertNewFields(candidateViolatingReport, {
+    nextStep: false,
+    listOver5: 1,
+    preambleClosers: ['Great question', 'Let me know if you need anything else'],
+    emDash: 1,
+    transitionOpeners: ['Additionally'],
+    repeatedOpeners: ['The'],
+    jargon: ['leverage'],
+    decorativeAdjectives: ['robust'],
+    googleStyle: ['please'],
+  }, 'candidate-violating.txt');
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'plain-style-bench-'));
   const tempFile = path.join(tempDir, 'list-prose.txt');
@@ -43,6 +92,69 @@ const run = () => {
   );
   const syntheticReport = analyzeFile(tempFile);
   assert.equal(syntheticReport.longSentences, 1);
+
+  assertNewFields(analyzeText(''), {
+    nextStep: false,
+    listOver5: 0,
+    preambleClosers: [],
+    emDash: 0,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, 'empty string');
+
+  assertNewFields(analyzeText('```js\nconsole.log(1);\n```'), {
+    nextStep: false,
+    listOver5: 0,
+    preambleClosers: [],
+    emDash: 0,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, 'code-only text');
+
+  assertNewFields(analyzeText('Plain prose.'), {
+    nextStep: false,
+    listOver5: 0,
+    preambleClosers: [],
+    emDash: 0,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, 'one-line text');
+
+  assertNewFields(analyzeText(['- one', '- two', '- three', '- four', '- five', '- six'].join('\n')), {
+    nextStep: false,
+    listOver5: 1,
+    preambleClosers: [],
+    emDash: 0,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, '6-item list');
+
+  assertNewFields(analyzeText('Use an em dash — here.'), {
+    nextStep: false,
+    listOver5: 0,
+    preambleClosers: [],
+    emDash: 1,
+    transitionOpeners: [],
+    repeatedOpeners: [],
+    jargon: [],
+    decorativeAdjectives: [],
+    googleStyle: [],
+  }, 'em-dash text');
+
+  assert.equal(analyzeFile(compliant).compliant, true);
+  assert.equal(analyzeFile(violating).compliant, false);
   fs.rmSync(tempDir, { recursive: true, force: true });
 };
 

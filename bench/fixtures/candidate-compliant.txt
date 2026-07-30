@@ -1,0 +1,6 @@
+Use this plan.
+- Check the input.
+- Return the result.
+Parser reads input.
+Server returns data.
+Next: run the checks.
