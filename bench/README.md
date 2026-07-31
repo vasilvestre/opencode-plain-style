@@ -1,0 +1,162 @@
+# Bench — experiments log
+
+This directory holds the benchmark harness, scorer, and all experiment results.
+This file is the running log of what we tried, what worked, and what we dropped.
+Add a new section each time you run a new experiment or change the rulebook.
+
+---
+
+## 2026-07-29 — Baseline measurement
+
+**Question:** does the plugin actually change how the agent writes?
+
+We ran a single A/B experiment: 5 blind prose probes × 3 reps × 2 arms = 30 runs.
+Control arm has no rulebook. Treatment arm has the stock 16-rule rulebook.
+Both arms use the same model (`kimi-for-coding/k3-256k`), same agent, all MCPs off.
+
+| Rule                    | Control | Treatment | Delta  |
+| ----------------------- | ------: | --------: | -----: |
+| Banned-intensifier-free |   80.0% |    100.0% | +20.0  |
+| Hedge-free              |   93.3% |    100.0% |  +6.7  |
+| Sentences ≤25 words     |   73.3% |     93.3% | +20.0  |
+| Fully compliant         |   66.7% |     93.3% | +26.6  |
+
+**Verdict:** the plugin works. +26.6 points fully compliant.
+Raw transcripts: `runs/20260729-105827/`.
+
+---
+
+## 2026-07-30 — Candidate rules benchmark
+
+**Question:** which rules from external rulebooks are worth adding?
+
+We researched three external sources:
+- `ayghri/i-have-adhd` — ADHD-friendly response patterns
+- `yzhao062/agent-style` — 21 agent writing rules
+- `kylehughes/writing-prose-like-a-human-for-agents` — 5 deny-listed adjectives
+- Google developer documentation style guide — "please", "etc.", "and so on"
+
+We picked 9 checkable candidate rules, scored them with the existing harness (control = stock 16-rule rulebook, treatment = stock + 9 candidates), and ran 30 runs on Kimi.
+
+| Rule                      | Control | Treatment |  Delta | Verdict                        |
+| ------------------------- | ------: | --------: | -----: | ------------------------------ |
+| Next-step present         |    0.0% |    100.0% | +100.0 | **ADOPT**                      |
+| Em-dash-free              |   13.3% |    100.0% |  +86.7 | **ADOPT**                      |
+| Google-style-free         |   73.3% |    100.0% |  +26.7 | **ADOPT**                      |
+| Repeated-opener-free      |  100.0% |     80.0% |  -20.0 | **SKIP** (caused regression)   |
+| List blocks ≤5            |   93.3% |    100.0% |   +6.7 | Defer (natural rate too high)  |
+| Preamble-closer-free      |  100.0% |    100.0% |    0.0 | Defer (saturated)              |
+| Transition-opener-free    |  100.0% |    100.0% |    0.0 | Defer (saturated)              |
+| Jargon-free               |  100.0% |    100.0% |    0.0 | Defer (saturated)              |
+| Decorative-adjective-free |  100.0% |    100.0% |    0.0 | Defer (saturated)              |
+
+**Dropped:** repeated-opener-free. The rule primed the violation it banned.
+Control produced 0% violations naturally; treatment produced 20%. Skip.
+
+**Excluded:** i-have-adhd R5 "restate state every turn". Not checkable on single-turn probes.
+Needs a multi-turn harness mode.
+
+**Verdict:** adopted 3 rules (next-step, em-dash, google-style) as rules 16-18.
+Full proposal: `candidate-rules-proposal.md`.
+
+---
+
+## 2026-07-31 — Dilution and ablation study
+
+**Question:** do the 3 new rules cause dilution? Are any existing rules redundant?
+
+### Dilution check
+
+Adding 3 rules to go from 16 to 19 cost ~6.6 points fully-compliant on Kimi:
+- 16-rule arm: 93.3% fully compliant
+- 19-rule arm (v0-full): 86.7% fully compliant
+
+Empirical estimate: each rule added costs ~2.2 points of attention.
+Before adding any rule, its lift must exceed its dilution cost.
+
+### Ablation design
+
+Three ablation variants, each with one rule removed:
+
+| Variant | Rule removed        |
+| ------- | ------------------- |
+| v1      | Sentence length     |
+| v2      | Banned intensifiers |
+| v3      | Hedge language      |
+
+**Redundancy threshold:** a rule is redundant if the model reaches ≥86.7% fully-compliant without it (within 2 runs of 100%).
+
+### Kimi results (v0 only — quota exhausted before v1–v3)
+
+| Variant | Control | Treatment | Delta  |
+| ------- | ------: | --------: | -----: |
+| v0-full |   53.3% |     86.7% | +33.4  |
+
+v1–v3 were run on gpt-5.4-mini as a substitute. Results are not comparable to Kimi.
+Cross-model substitution invalidates any cut decision. **No rules were cut.**
+
+### Sonnet results (claude-sonnet-4.6, all 4 variants)
+
+Run to build a cross-model dataset while Kimi quota recovers.
+
+| Variant               | Control | Treatment | Delta  |
+| --------------------- | ------: | --------: | -----: |
+| v0-full               |   60.0% |     80.0% | +20.0  |
+| v1-no-sentence-length |   66.7% |     93.3% | +26.6  |
+| v2-no-banned          |   73.3% |     80.0% |  +6.7  |
+| v3-no-hedge           |   60.0% |     93.3% | +33.3  |
+
+On Sonnet: removing hedge (v3) or sentence-length (v1) each increase the fully-compliant rate above 86.7%.
+This suggests both rules are redundant for Sonnet — the model already follows them naturally.
+Removing banned-intensifiers (v2) drops lift to +6.7, meaning that rule still contributes.
+
+**Verdict (current):** no rules cut yet. Wait for matched Kimi ablation before deciding.
+Results file: `sonnet-ablation-results.md`.
+Ablation analysis: `ablation-analysis.md`.
+
+---
+
+## What to do next
+
+- **When Kimi quota recovers:** run `BENCH_MODEL=kimi-for-coding/k3-256k bash harness.sh 3 --jobs 2 --candidate variants/v1-no-sentence-length.md` (and v2, v3). Apply the ≥86.7% threshold to Kimi results only.
+- **If Kimi confirms v3 redundant:** cut the hedge rule → 18-rule set.
+- **If Kimi confirms v1 redundant:** cut the sentence-length rule → 17-rule set.
+- **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5 "restate state every turn".
+
+---
+
+## Files in this directory
+
+| File / dir                      | What it is                                                      |
+| ------------------------------- | --------------------------------------------------------------- |
+| `harness.sh`                    | A/B harness. `./harness.sh 3 --jobs 2` for a full run.         |
+| `score.mjs`                     | Deterministic scorer. `node score.mjs --json <file>` for JSON. |
+| `aggregate.mjs`                 | Roll up a run dir into scoreboard + results.json.               |
+| `BENCHMARK.md`                  | Numbers from the baseline measurement (2026-07-29 run).         |
+| `candidate-rules-proposal.md`   | Per-rule verdict for the 9 candidate rules.                     |
+| `ablation-analysis.md`          | Rule-redundancy verdicts and dilution estimate.                 |
+| `sonnet-ablation-results.md`    | Sonnet ablation run for cross-model comparison.                 |
+| `plain-style.candidate.md`      | Candidate rulebook used in treatment during candidate bench.    |
+| `variants/`                     | Ablation variant rulesets (v0–v3).                              |
+| `prompts/`                      | 5 blind prose probes used in every run.                         |
+| `fixtures/`                     | Scorer unit test fixtures.                                      |
+| `testdata/`                     | Mini-runs for aggregator tests.                                 |
+| `runs/`                         | Raw transcripts and aggregated results (gitignored, except the  |
+|                                 | baseline run `20260729-105827` tracked for README links).       |
+
+## Reproduction
+
+```bash
+cd bench
+
+# Full baseline run (30 runs, ~10 min with --jobs 2)
+./harness.sh 3 --jobs 2
+node aggregate.mjs runs/<timestamp>
+
+# Candidate or ablation variant
+./harness.sh 3 --jobs 2 --candidate variants/v1-no-sentence-length.md
+node aggregate.mjs runs/<timestamp>
+
+# Different model
+BENCH_MODEL=kimi-for-coding/k3-256k ./harness.sh 3 --jobs 2
+```
