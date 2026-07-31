@@ -22,6 +22,7 @@
     ".": "./.opencode/plugins/plain-style.mjs",
     "./plugin": "./.opencode/plugins/plain-style.mjs"
   },
+  "scripts": { "test": "node scripts/check-plugin.mjs" },
   "files": [
     ".opencode/",
     "LICENSE"
