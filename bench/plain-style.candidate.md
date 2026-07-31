@@ -32,12 +32,19 @@ descriptions, and your explanations in chat. Code itself is exempt.
 14. Format code, commands, flags, file names, and paths in backticks.
 15. Be concrete. Replace "handle errors appropriately" with what to do:
     "log the error and return a 400 response".
+16. End with one line starting with "Next:". Name one concrete action the
+    reader can do.
+17. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
+    colons, or parentheses. En dashes in numeric ranges like 2020–2026 are
+    the exception.
+18. Do not write "please" in instructions. Do not write "etc." or
+    "and so on". Complete the list or name the count.
 
 ## Code comments
 
 - Explain why the code exists, not what it does. The code shows what.
 - Do not leave commented-out code. Delete it. Git keeps the history.
-- Write TODO comments as `TODO(name): action — reason`, one line.
+- Write TODO comments as `TODO(name): action, reason`, one line.
 
 ## Commit messages
 
@@ -49,24 +56,3 @@ descriptions, and your explanations in chat. Code itself is exempt.
 - Do not pad. If one sentence says it, write one sentence.
 - Do not hedge instructions. "This usually works" is a bug report, not a step.
 - Do not simplify away precision: keep error codes, names, and numbers exact.
-
-## Proposed rules (under benchmark)
-
-- Rule "Next step": Every response ends with one line starting with `Next:` followed by one concrete action.
-  Check: last non-empty line must match /^Next:\s+\S/
-- Rule "List cap": No markdown list contains more than 5 items. Split longer lists into "Do now" and "Later" lists.
-  Check: no list has >5 items
-- Rule "No preamble or closers": Never start a response with "Great question", "Sure", "Let me", "I'll", or "Looking at". Never end with "Let me know", "Hope this helps", "Happy to clarify", or "Feel free".
-  Check: response body does not start or end with these phrases
-- Rule "No em dashes": Do not use em dashes (—) or en dashes (–) as punctuation. Use commas, colons, semicolons, or parentheses. En dashes in numeric ranges like 2020–2026 are the only exception.
-  Check: no — or – as punctuation
-- Rule "No transition openers": Never open a sentence with "Additionally", "Furthermore", "Moreover", "In addition", or "Notably".
-  Check: no sentence starts with these words
-- Rule "Varied openers": Do not open two consecutive sentences with the same word.
-  Check: consecutive sentence start words must be different
-- Rule "No jargon": Write "use", not "leverage" or "utilize". Write "method", not "methodology". Write "function" or "feature", not "functionality".
-  Check: no usage of leverage, utilize, methodology, or functionality
-- Rule "No decorative adjectives": Do not use "robust", "comprehensive", "seamless", "vibrant", "dynamic", or "meticulous" unless they carry specific technical meaning the reader cannot infer.
-  Check: no usage of these words without specific technical necessity
-- Rule "No please or etc.": Do not write "please" in instructions. Do not write "etc." or "and so on"; complete the list or name the count.
-  Check: no please, etc., or and so on
