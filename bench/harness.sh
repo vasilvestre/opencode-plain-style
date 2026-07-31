@@ -30,10 +30,12 @@ usage() { sed -n '2,9p' "$0"; }
 REPS=3
 JOBS=1
 PROBE=""
+CANDIDATE_FILE="$BENCH/plain-style.candidate.md"
 while (($#)); do
   case "$1" in
-    --jobs)  JOBS="$2"; shift 2 ;;
-    --probe) PROBE="$2"; shift 2 ;;
+    --jobs)      JOBS="$2"; shift 2 ;;
+    --probe)     PROBE="$2"; shift 2 ;;
+    --candidate) CANDIDATE_FILE="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) if [[ "$1" =~ ^[0-9]+$ ]]; then REPS="$1"; shift
        else echo "unknown arg: $1" >&2; usage >&2; exit 1; fi ;;
@@ -59,7 +61,7 @@ enabled_mcps() {
 # a candidate file repoints plain-style entries at the local copy.
 gen_config() {
   local arm="$1" dst="$2" cand=0
-  [[ "$arm" == treatment && -f "$BENCH/plain-style.candidate.md" ]] && cand=1
+  [[ "$arm" == treatment && -f "$CANDIDATE_FILE" ]] && cand=1
   SRC="$LIVE/opencode.jsonc" DST="$dst" ARM="$arm" CAND="$cand" bun -e '
     const fs = require("fs");
     const src = fs.readFileSync(process.env.SRC, "utf8");
@@ -134,10 +136,10 @@ build_replica() {
   # REAL files — ESM realpath resolution would read plain-style.md through a
   # symlink and bypass the candidate. rm first: cp onto a symlink would
   # overwrite the LIVE target.
-  if [[ "$arm" == treatment && -f "$BENCH/plain-style.candidate.md" ]]; then
+  if [[ "$arm" == treatment && -f "$CANDIDATE_FILE" ]]; then
     rm -f "$dir/plugins/plain-style.mjs" "$dir/plugins/plain-style.md"
     cp "$BENCH/../.opencode/plugins/plain-style.mjs" "$dir/plugins/plain-style.mjs"
-    cp "$BENCH/plain-style.candidate.md" "$dir/plugins/plain-style.md"
+    cp "$CANDIDATE_FILE" "$dir/plugins/plain-style.md"
   fi
   gen_config "$arm" "$dir/opencode.jsonc"
   gen_omo_config "$arm" "$dir/oh-my-openagent.json"
