@@ -219,6 +219,30 @@ Recommendation: adopt the v4 rephrase of rules 6 and 7 in the live rulebook when
 
 Run IDs: deepseek `20260802-181652`, mimo `20260802-182054`, ling `20260802-182539`.
 
+### v4 on the remaining free models (no hedge regression in v0)
+
+Ran v4 on laguna, nemotron, north-mini to check for negative impact elsewhere (30 runs each).
+
+| Model    | v0 hedge delta | v4 hedge delta | v0 compliant | v4 compliant |
+| -------- | -------------: | -------------: | -----------: | -----------: |
+| laguna   | 0.0            | 0.0            | 66.7%        | 53.3% (control shifted 66.7→53.3; delta 0.0, within noise) |
+| nemotron | -6.7           | -20.0          | 73.3%        | 80.0% (delta +6.7, but hedge-free dropped in treatment) |
+| north-mini | +6.7         | 0.0            | 66.7%        | 86.7% (delta +6.7, best absolute of all models) |
+
+Nemotron caveat: 2 v4 runs both showed hedge-free 80% in treatment. All 3 violations are
+epistemic "may" ("data may be outdated", "connection may be kept alive") — legitimate
+possibility statements, not requirement-hedging. The scorer counts any should/may/might
+occurrence. Same for the v0 single violation. Both v4 runs also had API cell failures,
+so treat nemotron's numbers as noisier than the rest.
+
+**Updated verdict:** v4 fixes hedge regressions on all 3 affected models (deepseek, mimo, ling)
+and causes no new negative impact on laguna or north-mini. Nemotron shows a scorer-precision
+issue (epistemic "may"), not a regression in rule compliance — the violation texts are
+unchanged in character between v0 and v4.
+
+Run IDs: laguna `20260802-183208`, nemotron `20260802-185349` (first attempt `20260802-184645`
+discarded, 2 control cells failed), north-mini `20260802-190023`.
+
 ---
 
 ## What to do next
