@@ -116,12 +116,55 @@ Ablation analysis: `ablation-analysis.md`.
 
 ---
 
+## 2026-08-02 — Low-end model comparison (deepseek-v4-flash-free)
+
+**Question:** does the plugin help a low-end model as much as it helps high-end models?
+
+We ran the full 19-rule rulebook (v0) on `opencode/deepseek-v4-flash-free`, the free low-end provider model.
+Same design: 5 probes × 3 reps × 2 arms = 30 runs. Run: `runs/20260802-164540`.
+
+| Rule                    | Control | Treatment | Delta  |
+| ----------------------- | ------: | --------: | -----: |
+| Banned-intensifier-free |   60.0% |     73.3% | +13.3  |
+| Hedge-free              |  100.0% |     86.7% | **-13.3** |
+| Sentences ≤25 words     |   80.0% |     93.3% | +13.3  |
+| Fully compliant         |   46.7% |     60.0% | +13.3  |
+| Mean passive hits       |     1.2 |      0.5  |  -0.7  |
+| Mean words              |   189.5 |    190.7  |  +1.2  |
+| Next-step present       |    0.0% |     73.3% | +73.3  |
+| Em-dash-free            |    6.7% |     86.7% | +80.0  |
+| Google-style-free       |   73.3% |     93.3% | +20.0  |
+| Repeated-opener-free    |   86.7% |     80.0% |  -6.7  |
+
+### Cross-model comparison (fully compliant, v0 ruleset)
+
+| Model                         | Tier     | Control | Treatment | Delta  |
+| ----------------------------- | -------- | ------: | --------: | -----: |
+| `kimi-for-coding/k3-256k`     | high-end |   53.3% |     86.7% | +33.4  |
+| `claude-sonnet-4.6`           | high-end |   60.0% |     80.0% | +20.0  |
+| `deepseek-v4-flash-free`      | low-end  |   46.7% |     60.0% | +13.3  |
+
+**Verdict:** the plugin helps the low-end model too, but the absolute ceiling is lower.
+The flash model lands at 60% fully-compliant with the rulebook, versus 80–87% for the high-end models.
+Two regressions appear that high-end models did not show: hedge-free (-13.3) and repeated-opener-free (-6.7).
+The hedge violations are genuine prose ("might", "should"), not rulebook quoting.
+The flash model's natural em-dash rate is extreme (93.3% of control runs violate), so the em-dash rule delivers the largest single gain (+80.0).
+Answer length is flat (+1.2 words), unlike high-end models which lengthen (+16–20%).
+Per-probe: commit-msg 3/3 both arms; express control 0/3 → treatment 1/3.
+
+Per AGENTS.md rules, no rules were changed based on this run. The hedge regression is a candidate for
+a future ablation on this model: if flash stays ≥86.7% hedge-free without the rule, cut it for this tier.
+
+---
+
 ## What to do next
 
 - **When Kimi quota recovers:** run `BENCH_MODEL=kimi-for-coding/k3-256k bash harness.sh 3 --jobs 2 --candidate variants/v1-no-sentence-length.md` (and v2, v3). Apply the ≥86.7% threshold to Kimi results only.
 - **If Kimi confirms v3 redundant:** cut the hedge rule → 18-rule set.
 - **If Kimi confirms v1 redundant:** cut the sentence-length rule → 17-rule set.
 - **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5 "restate state every turn".
+- **Flash hedge regression:** run v3 (no-hedge) on deepseek-v4-flash-free. If flash stays ≥86.7% hedge-free without the rule, the hedge rule hurts this tier; consider tier-specific rulebooks or cutting it.
+- **More model tiers:** the high-end (Kimi, Sonnet) vs low-end (flash) gap suggests running one more mid-tier model to map the curve.
 
 ---
 
