@@ -157,6 +157,41 @@ a future ablation on this model: if flash stays ≥86.7% hedge-free without the 
 
 ---
 
+## 2026-08-02 — Free opencode models sweep (6 models)
+
+**Question:** how does the rulebook behave across every free opencode provider model?
+
+We ran the full 19-rule rulebook on all 6 free models, including `mimo-v2.5-free`.
+Same design per model: 5 probes × 3 reps × 2 arms = 30 runs.
+
+| Model                          | Control | Treatment | Delta  |
+| ------------------------------ | ------: | --------: | -----: |
+| `opencode/deepseek-v4-flash-free`  |   46.7% |     60.0% | +13.3  |
+| `opencode/mimo-v2.5-free`         |   80.0% |     73.3% | **-6.7** |
+| `opencode/laguna-s-2.1-free`      |   66.7% |     73.3% |  +6.6  |
+| `opencode/ling-3.0-flash-free`    |   80.0% |     86.7% |  +6.7  |
+| `opencode/nemotron-3-ultra-free`  |   73.3% |     80.0% |  +6.7  |
+| `opencode/north-mini-code-free`   |   66.7% |     73.3% |  +6.6  |
+
+**Verdict:** the rulebook helps 5 of 6 free models. Mimo is the only model where it hurts (-6.7).
+Mimo's control arm is already strong (80% natural compliance), and the rulebook's hedge-word
+examples prime the model to write them (2 hedge + 2 banned violations appear only in treatment).
+Hedge regression appears in 3 of 6 free models (deepseek -13.3, mimo -13.3, ling -6.7):
+the rulebook lists hedge words, and weaker models echo them back. North-mini-code shows
+jargon regression (-13.3) and repeated-opener regression (-20.0).
+Next-step adoption varies widely: ling 86.7%, deepseek 73.3%, mimo/laguna 46.7%,
+nemotron 33.3%, north-mini 13.3%. No rules changed based on this sweep.
+
+Run IDs:
+- deepseek-v4-flash-free: `runs/20260802-164540`
+- mimo-v2.5-free: `runs/20260802-165150`
+- laguna-s-2.1-free: `runs/20260802-170412`
+- ling-3.0-flash-free: `runs/20260802-172027`
+- nemotron-3-ultra-free: `runs/20260802-172342`
+- north-mini-code-free: `runs/20260802-173225`
+
+---
+
 ## What to do next
 
 - **When Kimi quota recovers:** run `BENCH_MODEL=kimi-for-coding/k3-256k bash harness.sh 3 --jobs 2 --candidate variants/v1-no-sentence-length.md` (and v2, v3). Apply the ≥86.7% threshold to Kimi results only.
@@ -164,6 +199,7 @@ a future ablation on this model: if flash stays ≥86.7% hedge-free without the 
 - **If Kimi confirms v1 redundant:** cut the sentence-length rule → 17-rule set.
 - **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5 "restate state every turn".
 - **Flash hedge regression:** run v3 (no-hedge) on deepseek-v4-flash-free. If flash stays ≥86.7% hedge-free without the rule, the hedge rule hurts this tier; consider tier-specific rulebooks or cutting it.
+- **Mimo negative delta:** mimo is the only model where the rulebook hurts (-6.7). Investigate whether the hedge-word priming is the cause; test v3 (no-hedge) on mimo.
 - **More model tiers:** the high-end (Kimi, Sonnet) vs low-end (flash) gap suggests running one more mid-tier model to map the curve.
 
 ---
