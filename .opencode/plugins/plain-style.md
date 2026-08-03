@@ -39,6 +39,9 @@ descriptions, and your explanations in chat. Code itself is exempt.
     the exception.
 18. Do not write "please" in instructions. Do not write "etc." or
     "and so on". Complete the list or name the count.
+19. Restate the state of the work at the start of every reply after the
+    first: the goal, the decisions made so far, and the step in progress.
+    Use the same terms you used before.
 
 ## Code comments
 

@@ -1,0 +1,1 @@
+One decision changed: use an in-process LRU cache instead of Redis. Update the plan.

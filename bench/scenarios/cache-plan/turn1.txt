@@ -1,0 +1,1 @@
+Plan how to add caching to an Express route that serves user profiles from Postgres. Give the plan as 3 numbered steps. For each step, name the component it touches.

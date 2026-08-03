@@ -32,7 +32,7 @@ AGENTS.md instructions, by contrast, get summarized away during compaction.
 
 ## The rules, by example
 
-Five of the nineteen rules, before and after.
+Five of the twenty rules, before and after.
 Full rulebook: [.opencode/plugins/plain-style.md](.opencode/plugins/plain-style.md).
 
 ```text
@@ -75,6 +75,13 @@ Decisions from the English Language proposal (2026-08-02):
 | Avoid passive voice                                        | Kept     | Already covered by Rule 1                      |
 | American English, title case, no Oxford commas,            | Not      | Not checkable by the scorer, and each injected |
 | gender-neutral pronouns, contractions allowed              | injected | rule costs ~2.2 points of dilution             |
+
+Decisions from the i-have-adhd proposal (2026-08-03):
+
+| Proposed rule                                              | Decision | Why                                            |
+| ---------------------------------------------------------- | -------- | ---------------------------------------------- |
+| Restate the state of the work on every turn after the      | Adopted  | +16.7 and +50 pts restatement lift on two      |
+| first                                                      |          | multi-turn scenarios, no field regression      |
 
 One design lesson shapes the phrasing: never list banned words in the rulebook.
 Weaker models echo the list and produce more violations, not fewer.

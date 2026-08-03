@@ -1,0 +1,5 @@
+# R5 restatement check, one line per follow-up turn:
+# turnN: <space-separated keywords the reply must mention, case-insensitive>
+# The reply must also contain a numbered list (the restated plan).
+turn2: redis
+turn3: redis production

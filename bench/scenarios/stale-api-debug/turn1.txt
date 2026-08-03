@@ -1,0 +1,1 @@
+Plan how to debug an API that returns stale data after each deployment. The API sits behind a CDN. Give the plan as 3 numbered steps. For each step, name the tool or command you would use.
