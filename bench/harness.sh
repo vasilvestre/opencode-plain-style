@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # harness.sh — A/B benchmark harness for the plain-style plugin.
 #
-# Usage: harness.sh [reps] [--jobs N] [--probe NAME]
+# Usage: harness.sh [reps] [--jobs 2] [--probe NAME]
 #   reps        number of repetitions per cell (default 3; 0 = build/verify only)
-#   --jobs N    2 = run each control/treatment pair in parallel (default 1)
+#   --jobs 2    run each control/treatment pair in parallel (default: sequential)
 #   --probe N   run only prompts/<NAME>.txt (smoke runs)
 #
 # SAFETY: this script writes ONLY under $BENCH (this bench/ directory).

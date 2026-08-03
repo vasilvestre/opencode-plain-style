@@ -1,11 +1,36 @@
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { analyzeFile } from './score.mjs';
 
 const round1 = (value) => Math.round(value * 10) / 10;
 const fmtPct = (value) => `${round1(value).toFixed(1)}%`;
 const fmtNum = (value) => round1(value).toFixed(1);
+
+// One table drives the buckets, the finalized summary, and the scoreboard rows.
+// kind 'percent' counts reports where count() is true; kind 'mean' averages count().
+const METRICS = [
+  { key: 'bannedFree', label: 'Banned-intensifier-free', kind: 'percent', count: (r) => r.banned.length === 0 },
+  { key: 'hedgeFree', label: 'Hedge-free', kind: 'percent', count: (r) => r.hedge.length === 0 },
+  { key: 'noLongSentences', label: 'Sentences ≤25 words', kind: 'percent', count: (r) => r.longSentences === 0 },
+  { key: 'fullyCompliant', label: 'Fully compliant', kind: 'percent', count: (r) => r.compliant },
+  { key: 'passiveHits', label: 'Mean passive hits', kind: 'mean', count: (r) => r.passiveCount },
+  { key: 'words', label: 'Mean words', kind: 'mean', count: (r) => r.words },
+  { key: 'nextStep', label: 'Next-step present', kind: 'percent', count: (r) => r.nextStep },
+  { key: 'listOver5Free', label: 'List blocks ≤5', kind: 'percent', count: (r) => r.listOver5 === 0 },
+  { key: 'preambleCloserFree', label: 'Preamble-closer-free', kind: 'percent', count: (r) => r.preambleClosers.length === 0 },
+  { key: 'emDashFree', label: 'Em-dash-free', kind: 'percent', count: (r) => r.emDash === 0 },
+  { key: 'transitionOpenerFree', label: 'Transition-opener-free', kind: 'percent', count: (r) => r.transitionOpeners.length === 0 },
+  { key: 'repeatedOpenerFree', label: 'Repeated-opener-free', kind: 'percent', count: (r) => r.repeatedOpeners.length === 0 },
+  { key: 'jargonFree', label: 'Jargon-free', kind: 'percent', count: (r) => r.jargon.length === 0 },
+  { key: 'decorativeAdjectiveFree', label: 'Decorative-adjective-free', kind: 'percent', count: (r) => r.decorativeAdjectives.length === 0 },
+  { key: 'googleStyleFree', label: 'Google-style-free', kind: 'percent', count: (r) => r.googleStyle.length === 0 },
+];
+
+const outName = (metric) =>
+  metric.kind === 'mean'
+    ? `mean${metric.key[0].toUpperCase()}${metric.key.slice(1)}`
+    : `${metric.key}Pct`;
 
 const collectTxtFiles = (dir) =>
   fs
@@ -21,75 +46,35 @@ const collectTxtFiles = (dir) =>
 
 const probeName = (file) => path.basename(file).replace(/-\d+\.txt$/, '');
 
-const scoreFiles = (benchDir, files) => {
-  const scorePath = path.join(benchDir, 'score.mjs');
-  const stdout = execFileSync(process.execPath, [scorePath, '--json', ...files], {
-    encoding: 'utf8',
-  });
-  return JSON.parse(stdout.trim());
-};
-
-const emptyBucket = () => ({
-  n: 0,
-  bannedFree: 0,
-  hedgeFree: 0,
-  noLongSentences: 0,
-  fullyCompliant: 0,
-  passiveCount: 0,
-  words: 0,
-  nextStep: 0,
-  listOver5Free: 0,
-  preambleCloserFree: 0,
-  emDashFree: 0,
-  transitionOpenerFree: 0,
-  repeatedOpenerFree: 0,
-  jargonFree: 0,
-  decorativeAdjectiveFree: 0,
-  googleStyleFree: 0,
-});
+const emptyBucket = () => ({ n: 0, ...Object.fromEntries(METRICS.map((m) => [m.key, 0])) });
 
 const addReport = (bucket, report) => {
   bucket.n += 1;
-  bucket.bannedFree += report.banned.length === 0 ? 1 : 0;
-  bucket.hedgeFree += report.hedge.length === 0 ? 1 : 0;
-  bucket.noLongSentences += report.longSentences === 0 ? 1 : 0;
-  bucket.fullyCompliant += report.compliant ? 1 : 0;
-  bucket.passiveCount += report.passiveCount;
-  bucket.words += report.words;
-  bucket.nextStep += report.nextStep ? 1 : 0;
-  bucket.listOver5Free += report.listOver5 === 0 ? 1 : 0;
-  bucket.preambleCloserFree += report.preambleClosers.length === 0 ? 1 : 0;
-  bucket.emDashFree += report.emDash === 0 ? 1 : 0;
-  bucket.transitionOpenerFree += report.transitionOpeners.length === 0 ? 1 : 0;
-  bucket.repeatedOpenerFree += report.repeatedOpeners.length === 0 ? 1 : 0;
-  bucket.jargonFree += report.jargon.length === 0 ? 1 : 0;
-  bucket.decorativeAdjectiveFree += report.decorativeAdjectives.length === 0 ? 1 : 0;
-  bucket.googleStyleFree += report.googleStyle.length === 0 ? 1 : 0;
+  for (const metric of METRICS) {
+    const value = metric.count(report);
+    bucket[metric.key] += metric.kind === 'mean' ? value : value ? 1 : 0;
+  }
 };
 
 const finalizeBucket = (bucket) => ({
   n: bucket.n,
-  bannedFreePct: bucket.n ? round1((bucket.bannedFree / bucket.n) * 100) : 0,
-  hedgeFreePct: bucket.n ? round1((bucket.hedgeFree / bucket.n) * 100) : 0,
-  noLongSentencesPct: bucket.n ? round1((bucket.noLongSentences / bucket.n) * 100) : 0,
-  fullyCompliantPct: bucket.n ? round1((bucket.fullyCompliant / bucket.n) * 100) : 0,
-  meanPassiveHits: bucket.n ? round1(bucket.passiveCount / bucket.n) : 0,
-  meanWords: bucket.n ? round1(bucket.words / bucket.n) : 0,
-  nextStepPct: bucket.n ? round1((bucket.nextStep / bucket.n) * 100) : 0,
-  listOver5FreePct: bucket.n ? round1((bucket.listOver5Free / bucket.n) * 100) : 0,
-  preambleCloserFreePct: bucket.n ? round1((bucket.preambleCloserFree / bucket.n) * 100) : 0,
-  emDashFreePct: bucket.n ? round1((bucket.emDashFree / bucket.n) * 100) : 0,
-  transitionOpenerFreePct: bucket.n ? round1((bucket.transitionOpenerFree / bucket.n) * 100) : 0,
-  repeatedOpenerFreePct: bucket.n ? round1((bucket.repeatedOpenerFree / bucket.n) * 100) : 0,
-  jargonFreePct: bucket.n ? round1((bucket.jargonFree / bucket.n) * 100) : 0,
-  decorativeAdjectiveFreePct: bucket.n ? round1((bucket.decorativeAdjectiveFree / bucket.n) * 100) : 0,
-  googleStyleFreePct: bucket.n ? round1((bucket.googleStyleFree / bucket.n) * 100) : 0,
+  ...Object.fromEntries(
+    METRICS.map((metric) => [
+      outName(metric),
+      bucket.n
+        ? round1(
+            metric.kind === 'mean'
+              ? bucket[metric.key] / bucket.n
+              : (bucket[metric.key] / bucket.n) * 100,
+          )
+        : 0,
+    ]),
+  ),
 });
 
 const aggregate = (runsDir) => {
-  const benchDir = path.dirname(fileURLToPath(import.meta.url));
   const files = collectTxtFiles(runsDir);
-  const reports = scoreFiles(benchDir, files);
+  const reports = files.map(analyzeFile);
 
   const byCondition = {
     control: emptyBucket(),
@@ -126,113 +111,13 @@ const aggregate = (runsDir) => {
     }]),
   );
 
-  const rows = [
-    {
-      rule: 'Banned-intensifier-free',
-      control: summary.control.bannedFreePct,
-      treatment: summary.treatment.bannedFreePct,
-      deltaPts: round1(summary.treatment.bannedFreePct - summary.control.bannedFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Hedge-free',
-      control: summary.control.hedgeFreePct,
-      treatment: summary.treatment.hedgeFreePct,
-      deltaPts: round1(summary.treatment.hedgeFreePct - summary.control.hedgeFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Sentences ≤25 words',
-      control: summary.control.noLongSentencesPct,
-      treatment: summary.treatment.noLongSentencesPct,
-      deltaPts: round1(summary.treatment.noLongSentencesPct - summary.control.noLongSentencesPct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Fully compliant',
-      control: summary.control.fullyCompliantPct,
-      treatment: summary.treatment.fullyCompliantPct,
-      deltaPts: round1(summary.treatment.fullyCompliantPct - summary.control.fullyCompliantPct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Mean passive hits',
-      control: summary.control.meanPassiveHits,
-      treatment: summary.treatment.meanPassiveHits,
-      deltaPts: round1(summary.treatment.meanPassiveHits - summary.control.meanPassiveHits),
-      kind: 'mean',
-    },
-    {
-      rule: 'Mean words',
-      control: summary.control.meanWords,
-      treatment: summary.treatment.meanWords,
-      deltaPts: round1(summary.treatment.meanWords - summary.control.meanWords),
-      kind: 'mean',
-    },
-    {
-      rule: 'Next-step present',
-      control: summary.control.nextStepPct,
-      treatment: summary.treatment.nextStepPct,
-      deltaPts: round1(summary.treatment.nextStepPct - summary.control.nextStepPct),
-      kind: 'percent',
-    },
-    {
-      rule: 'List blocks ≤5',
-      control: summary.control.listOver5FreePct,
-      treatment: summary.treatment.listOver5FreePct,
-      deltaPts: round1(summary.treatment.listOver5FreePct - summary.control.listOver5FreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Preamble-closer-free',
-      control: summary.control.preambleCloserFreePct,
-      treatment: summary.treatment.preambleCloserFreePct,
-      deltaPts: round1(summary.treatment.preambleCloserFreePct - summary.control.preambleCloserFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Em-dash-free',
-      control: summary.control.emDashFreePct,
-      treatment: summary.treatment.emDashFreePct,
-      deltaPts: round1(summary.treatment.emDashFreePct - summary.control.emDashFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Transition-opener-free',
-      control: summary.control.transitionOpenerFreePct,
-      treatment: summary.treatment.transitionOpenerFreePct,
-      deltaPts: round1(summary.treatment.transitionOpenerFreePct - summary.control.transitionOpenerFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Repeated-opener-free',
-      control: summary.control.repeatedOpenerFreePct,
-      treatment: summary.treatment.repeatedOpenerFreePct,
-      deltaPts: round1(summary.treatment.repeatedOpenerFreePct - summary.control.repeatedOpenerFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Jargon-free',
-      control: summary.control.jargonFreePct,
-      treatment: summary.treatment.jargonFreePct,
-      deltaPts: round1(summary.treatment.jargonFreePct - summary.control.jargonFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Decorative-adjective-free',
-      control: summary.control.decorativeAdjectiveFreePct,
-      treatment: summary.treatment.decorativeAdjectiveFreePct,
-      deltaPts: round1(summary.treatment.decorativeAdjectiveFreePct - summary.control.decorativeAdjectiveFreePct),
-      kind: 'percent',
-    },
-    {
-      rule: 'Google-style-free',
-      control: summary.control.googleStyleFreePct,
-      treatment: summary.treatment.googleStyleFreePct,
-      deltaPts: round1(summary.treatment.googleStyleFreePct - summary.control.googleStyleFreePct),
-      kind: 'percent',
-    },
-  ];
+  const rows = METRICS.map((metric) => ({
+    rule: metric.label,
+    control: summary.control[outName(metric)],
+    treatment: summary.treatment[outName(metric)],
+    deltaPts: round1(summary.treatment[outName(metric)] - summary.control[outName(metric)]),
+    kind: metric.kind,
+  }));
 
   const results = {
     runsDir,

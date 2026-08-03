@@ -97,7 +97,6 @@ export const analyzeText = (text) => {
     headings: /^#{1,3}\s/m.test(body),
     lists: /^[-*0-9]+\.\s|^[-*]\s/m.test(body),
     words: countWords(body),
-    sentences: sentences.length,
     compliant: banned.length === 0 && hedge.length === 0 && longSentences.length === 0,
     nextStep: nonEmptyLines.length > 0 && /^Next:\s+\S/.test(nonEmptyLines[nonEmptyLines.length - 1]),
     listOver5: listBlocksOver5(body),

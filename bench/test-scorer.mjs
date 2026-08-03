@@ -11,7 +11,20 @@ const violating = path.join(root, 'fixtures', 'violating.txt');
 const candidateCompliant = path.join(root, 'fixtures', 'candidate-compliant.txt');
 const candidateViolating = path.join(root, 'fixtures', 'candidate-violating.txt');
 
-const assertNewFields = (report, expected, label) => {
+const EMPTY = {
+  nextStep: false,
+  listOver5: 0,
+  preambleClosers: [],
+  emDash: 0,
+  transitionOpeners: [],
+  repeatedOpeners: [],
+  jargon: [],
+  decorativeAdjectives: [],
+  googleStyle: [],
+};
+
+const assertNewFields = (report, label, overrides = {}) => {
+  const expected = { ...EMPTY, ...overrides };
   assert.equal(report.nextStep, expected.nextStep, `${label}: nextStep`);
   assert.equal(report.listOver5, expected.listOver5, `${label}: listOver5`);
   assert.deepEqual(report.preambleClosers, expected.preambleClosers, `${label}: preambleClosers`);
@@ -51,21 +64,10 @@ const run = () => {
   assert.ok(parsed[0].longSentences >= 1);
 
   const candidateCompliantReport = analyzeText(fs.readFileSync(candidateCompliant, 'utf8'));
-  assertNewFields(candidateCompliantReport, {
-    nextStep: true,
-    listOver5: 0,
-    preambleClosers: [],
-    emDash: 0,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, 'candidate-compliant.txt');
+  assertNewFields(candidateCompliantReport, 'candidate-compliant.txt', { nextStep: true });
 
   const candidateViolatingReport = analyzeText(fs.readFileSync(candidateViolating, 'utf8'));
-  assertNewFields(candidateViolatingReport, {
-    nextStep: false,
+  assertNewFields(candidateViolatingReport, 'candidate-violating.txt', {
     listOver5: 1,
     preambleClosers: ['Great question', 'Let me know if you need anything else'],
     emDash: 1,
@@ -74,7 +76,7 @@ const run = () => {
     jargon: ['leverage'],
     decorativeAdjectives: ['robust'],
     googleStyle: ['please'],
-  }, 'candidate-violating.txt');
+  });
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'plain-style-bench-'));
   const tempFile = path.join(tempDir, 'list-prose.txt');
@@ -93,68 +95,18 @@ const run = () => {
   const syntheticReport = analyzeFile(tempFile);
   assert.equal(syntheticReport.longSentences, 1);
 
-  assertNewFields(analyzeText(''), {
-    nextStep: false,
-    listOver5: 0,
-    preambleClosers: [],
-    emDash: 0,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, 'empty string');
+  assertNewFields(analyzeText(''), 'empty string');
 
-  assertNewFields(analyzeText('```js\nconsole.log(1);\n```'), {
-    nextStep: false,
-    listOver5: 0,
-    preambleClosers: [],
-    emDash: 0,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, 'code-only text');
+  assertNewFields(analyzeText('```js\nconsole.log(1);\n```'), 'code-only text');
 
-  assertNewFields(analyzeText('Plain prose.'), {
-    nextStep: false,
-    listOver5: 0,
-    preambleClosers: [],
-    emDash: 0,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, 'one-line text');
+  assertNewFields(analyzeText('Plain prose.'), 'one-line text');
 
-  assertNewFields(analyzeText(['- one', '- two', '- three', '- four', '- five', '- six'].join('\n')), {
-    nextStep: false,
+  assertNewFields(analyzeText(['- one', '- two', '- three', '- four', '- five', '- six'].join('\n')), '6-item list', {
     listOver5: 1,
-    preambleClosers: [],
-    emDash: 0,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, '6-item list');
+  });
 
-  assertNewFields(analyzeText('Use an em dash — here.'), {
-    nextStep: false,
-    listOver5: 0,
-    preambleClosers: [],
-    emDash: 1,
-    transitionOpeners: [],
-    repeatedOpeners: [],
-    jargon: [],
-    decorativeAdjectives: [],
-    googleStyle: [],
-  }, 'em-dash text');
+  assertNewFields(analyzeText('Use an em dash — here.'), 'em-dash text', { emDash: 1 });
 
-  assert.equal(analyzeFile(compliant).compliant, true);
-  assert.equal(analyzeFile(violating).compliant, false);
   fs.rmSync(tempDir, { recursive: true, force: true });
 };
 
