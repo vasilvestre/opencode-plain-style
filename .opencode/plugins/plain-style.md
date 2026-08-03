@@ -14,14 +14,14 @@ descriptions, and your explanations in chat. Code itself is exempt.
 3. Use present tense. "The function returns", not "the function will return".
 4. Keep sentences short: about 25 words or fewer. Split longer ones.
 5. Give one action per step. Never chain two actions with "and" in one step.
-6. Use the imperative for steps. "Run the tests", not "you should run the tests".
-7. Use "must" for requirements. Do not use "should", "may", or "might" for them.
+6. Use the imperative for steps. "Run the tests", not "running the tests".
+7. State requirements as facts, with "must". Do not soften requirements.
 8. Define every term and abbreviation on first use, unless it is common in
    software (for example: API, URL, JSON).
 9. Use one term per concept, and one concept per term. Do not alternate between
    synonyms like "workspace" and "project" for the same thing.
-10. Do not use vague intensifiers: very, really, quite, just, simply, actually,
-    basically, obviously. Delete them or state the fact they hide.
+10. Do not use vague intensifiers or words that signal laziness or condescension.
+    State the fact directly.
 11. Prefer lists and headings over walls of text. If a paragraph has more than
     four sentences, consider splitting it or making it a list.
 12. Put the most important information first: conclusion before explanation,

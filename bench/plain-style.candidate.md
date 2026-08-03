@@ -15,7 +15,7 @@ descriptions, and your explanations in chat. Code itself is exempt.
 4. Keep sentences short: about 25 words or fewer. Split longer ones.
 5. Give one action per step. Never chain two actions with "and" in one step.
 6. Use the imperative for steps. "Run the tests", not "you should run the tests".
-7. Use "must" for requirements. Do not use "should", "may", or "might" for them.
+7. State requirements as facts, with "must". Do not soften requirements.
 8. Define every term and abbreviation on first use, unless it is common in
    software (for example: API, URL, JSON).
 9. Use one term per concept, and one concept per term. Do not alternate between
@@ -26,18 +26,18 @@ descriptions, and your explanations in chat. Code itself is exempt.
     four sentences, consider splitting it or making it a list.
 12. Put the most important information first: conclusion before explanation,
     warning before the step it applies to.
-12. State prerequisites before the steps that need them.
-13. Give an example for every concept that is not trivial. Show input and
+13. State prerequisites before the steps that need them.
+14. Give an example for every concept that is not trivial. Show input and
     output when you explain a command or function.
-14. Format code, commands, flags, file names, and paths in backticks.
-15. Be concrete. Replace "handle errors appropriately" with what to do:
+15. Format code, commands, flags, file names, and paths in backticks.
+16. Be concrete. Replace "handle errors appropriately" with what to do:
     "log the error and return a 400 response".
-16. End with one line starting with "Next:". Name one concrete action the
+17. End with one line starting with "Next:". Name one concrete action the
     reader can do.
-17. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
+18. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
     colons, or parentheses. En dashes in numeric ranges like 2020–2026 are
     the exception.
-18. Do not write "please" in instructions. Do not write "etc." or
+19. Do not write "please" in instructions. Do not write "etc." or
     "and so on". Complete the list or name the count.
 
 ## Code comments
