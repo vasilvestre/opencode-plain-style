@@ -21,16 +21,18 @@ Rules include:
 - Active voice, second person, present tense.
 - Sentences of 25 words or fewer.
 - Imperative mood for steps, one action per step.
-- `must` for requirements, never hedging modal verbs.
-- A banned list of vague intensifiers.
+- `must` for requirements, stated as facts without softening.
+- No vague intensifiers or words that signal laziness or condescension.
 - Lists and headings over walls of text, conclusion first.
+- One "Next:" line at the end naming a concrete action.
+- No em dashes as punctuation, no "please" in instructions, no "etc.".
 
 Because the injection happens per request, the rules survive context compaction.
 AGENTS.md instructions, by contrast, get summarized away during compaction.
 
 ## The rules, by example
 
-Five of the sixteen rules, before and after.
+Five of the nineteen rules, before and after.
 Full rulebook: [.opencode/plugins/plain-style.md](.opencode/plugins/plain-style.md).
 
 ```text
@@ -56,6 +58,27 @@ Rule: one action per step
 ```
 
 The pattern: every "before" hides a fact or an action. Every "after" states it.
+
+## Rule decisions
+
+Every rule in the rulebook earned its place through an A/B benchmark.
+Rules enter only if their compliance lift beats the measured dilution cost
+(~2.2 points per added rule) and they leave only if the model stays at ≥86.7%
+fully compliant without them. Ablations on two models found no rule cuttable.
+Full experiment history: [bench/README.md](bench/README.md).
+
+Decisions from the English Language proposal (2026-08-02):
+
+| Proposed rule                                              | Decision | Why                                            |
+| ---------------------------------------------------------- | -------- | ---------------------------------------------- |
+| Avoid belittling words (obviously, just, simply, ...)      | Adopted  | Folded into Rule 10, without the word list     |
+| Avoid passive voice                                        | Kept     | Already covered by Rule 1                      |
+| American English, title case, no Oxford commas,            | Not      | Not checkable by the scorer, and each injected |
+| gender-neutral pronouns, contractions allowed              | injected | rule costs ~2.2 points of dilution             |
+
+One design lesson shapes the phrasing: never list banned words in the rulebook.
+Weaker models echo the list and produce more violations, not fewer.
+Rules state what to do, not what to avoid by name.
 
 ## Install
 
@@ -169,6 +192,9 @@ A/B design: same agent, same pinned model, two config replicas identical except 
 30 runs total: 5 blind probes × 3 repetitions × 2 arms, deterministic scoring, zero LLM judging.
 Injection shifts probability; it does not guarantee compliance.
 For a hard guarantee, add deterministic linting (for example Vale) to CI.
+
+The table shows the original 16-rule baseline. The current 19-rule rulebook
+re-validated on the same model at +26.7 points (53.3% to 80.0%, 2026-08-03).
 
 Full details: [bench/BENCHMARK.md](bench/BENCHMARK.md).
 

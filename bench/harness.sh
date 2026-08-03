@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # harness.sh — A/B benchmark harness for the plain-style plugin.
 #
-# Usage: harness.sh [reps] [--jobs N] [--probe NAME]
+# Usage: harness.sh [reps] [--jobs 2] [--probe NAME]
 #   reps        number of repetitions per cell (default 3; 0 = build/verify only)
-#   --jobs N    2 = run each control/treatment pair in parallel (default 1)
+#   --jobs 2    run each control/treatment pair in parallel (default: sequential)
 #   --probe N   run only prompts/<NAME>.txt (smoke runs)
 #
 # SAFETY: this script writes ONLY under $BENCH (this bench/ directory).
@@ -30,10 +30,12 @@ usage() { sed -n '2,9p' "$0"; }
 REPS=3
 JOBS=1
 PROBE=""
+CANDIDATE_FILE="$BENCH/plain-style.candidate.md"
 while (($#)); do
   case "$1" in
-    --jobs)  JOBS="$2"; shift 2 ;;
-    --probe) PROBE="$2"; shift 2 ;;
+    --jobs)      JOBS="$2"; shift 2 ;;
+    --probe)     PROBE="$2"; shift 2 ;;
+    --candidate) CANDIDATE_FILE="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) if [[ "$1" =~ ^[0-9]+$ ]]; then REPS="$1"; shift
        else echo "unknown arg: $1" >&2; usage >&2; exit 1; fi ;;
@@ -55,10 +57,12 @@ enabled_mcps() {
 }
 
 # gen_config <arm> <dst>: copy live opencode.jsonc with all mcp.*.enabled=false;
-# control also drops the ./plugins/plain-style.mjs plugin entry.
+# control also drops the ./plugins/plain-style.mjs plugin entry; treatment with
+# a candidate file repoints plain-style entries at the local copy.
 gen_config() {
-  local arm="$1" dst="$2"
-  SRC="$LIVE/opencode.jsonc" DST="$dst" ARM="$arm" bun -e '
+  local arm="$1" dst="$2" cand=0
+  [[ "$arm" == treatment && -f "$CANDIDATE_FILE" ]] && cand=1
+  SRC="$LIVE/opencode.jsonc" DST="$dst" ARM="$arm" CAND="$cand" bun -e '
     const fs = require("fs");
     const src = fs.readFileSync(process.env.SRC, "utf8");
     // JSONC: drop full-line // comments only (never touch inline content);
@@ -68,6 +72,8 @@ gen_config() {
     for (const k of Object.keys(cfg.mcp ?? {})) cfg.mcp[k].enabled = false;
     if (process.env.ARM === "control")
       cfg.plugin = (cfg.plugin ?? []).filter(p => !String(p).includes("plain-style"));
+    else if (process.env.CAND === "1")
+      cfg.plugin = (cfg.plugin ?? []).map(p => String(p).includes("plain-style") ? "./plugins/plain-style.mjs" : p);
     fs.writeFileSync(process.env.DST, JSON.stringify(cfg, null, 2) + "\n");
   '
   # Pass 2: plugins (oh-my-openagent) inject extra MCPs; a user-config entry
@@ -126,6 +132,15 @@ build_replica() {
     fi
     ln -sfn "$f" "$dir/plugins/$base"
   done
+  # Candidate mode: treatment gets the repo plugin + candidate rulebook as
+  # REAL files — ESM realpath resolution would read plain-style.md through a
+  # symlink and bypass the candidate. rm first: cp onto a symlink would
+  # overwrite the LIVE target.
+  if [[ "$arm" == treatment && -f "$CANDIDATE_FILE" ]]; then
+    rm -f "$dir/plugins/plain-style.mjs" "$dir/plugins/plain-style.md"
+    cp "$BENCH/../.opencode/plugins/plain-style.mjs" "$dir/plugins/plain-style.mjs"
+    cp "$CANDIDATE_FILE" "$dir/plugins/plain-style.md"
+  fi
   gen_config "$arm" "$dir/opencode.jsonc"
   gen_omo_config "$arm" "$dir/oh-my-openagent.json"
 }

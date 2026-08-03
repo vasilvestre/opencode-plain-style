@@ -1,6 +1,6 @@
 # Benchmark: plain-style plugin
 
-**Result: the plugin raises fully-compliant prose from 66.7% to 93.3% of runs (+26.6 points).**
+**Result: the plugin raises fully-compliant prose from 66.7% to 93.3% of runs (+26.6 points) on `kimi-for-coding/k3-256k`.**
 
 The plain-style plugin injects a plain-language rulebook into the opencode system prompt.
 This benchmark measures the effect on agent writing with a single-variable A/B design.
@@ -81,7 +81,11 @@ Fully compliant share per probe:
 ## Limitations
 
 - N=3 per cell, so percentages carry wide variance at this sample size.
-- One model and one agent tested; other models need their own runs.
+- Results are model-specific. All runs used `kimi-for-coding/k3-256k`. A different
+  model may show different deltas or natural compliance rates. Ablation experiments
+  with a substitute model (gpt-5.4-mini) produced incomparable results, confirming
+  that compliance lift does not transfer across models. Run the harness against your
+  own model to get valid numbers for your setup.
 - The MCP-free environment differs from interactive use.
 - Results cover prose answers, not code quality.
 - Prompt injection shapes behavior. A hard guarantee needs deterministic linting (for example Vale) in CI.
