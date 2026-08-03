@@ -418,10 +418,104 @@ problem (weak lift) than redundancy would be.
 
 Run IDs: v0 `20260803-132538`, v5 `20260803-133419`, v6 `20260803-134221`, v7 `20260803-135240`.
 
+---
+
+## 2026-08-03 — Multi-turn harness (R5 test capability)
+
+**Question:** can we test i-have-adhd R5 "restate state every turn"? (Excluded from the
+candidate bench on 2026-07-30 because single-turn probes cannot observe it.)
+
+New module: `multiturn.sh` runs scripted conversations. Turn 1 creates a session
+(`opencode run --format json`), turns 2+ continue it (`--session <id>`). Each cell pins
+its own session id, so parallel arms cannot race. `score-multiturn.mjs` checks every
+follow-up reply for a restated plan (numbered list plus the scenario keywords from
+`scenarios/<name>/expect.txt`) and reuses `score.mjs` for style metrics. Shared replica
+build/verify code moved to `lib-replica.sh`, sourced by both harnesses. First scenario:
+`scenarios/cache-plan/` (3 turns, two plan changes).
+
+Smoke run: 1 rep × 2 arms × 3 turns on `opencode/laguna-s-2.1-free`. Session continuity
+verified (same sessionID across all turns in a cell). One scorer false negative found
+and fixed: the list check missed bolded item numbers (`**1.`). After the fix both arms
+restated 100% and stayed 100% style compliant. Treatment replies ran longer (207.5 vs
+127.5 mean words). Run: `runs/20260803-204126-mt`.
+
+**Verdict:** harness works. No verdict on R5 itself — n=1 smoke run on a free model.
+Adoption needs a full run on Kimi with R5 in the candidate rulebook, measured against
+the ~2.2-point dilution cost.
+
+---
+
+## 2026-08-03 — R5 candidate bench (multi-turn, Kimi)
+
+**Question:** does adding R5 "restate the state of the work at the start of every
+reply after the first" (rule 20 in the candidate rulebook) lift plan restatement
+across turns, and what does it cost?
+
+**Method:** 3 reps × 2 arms × 3 turns on `kimi-for-coding/k3-256k`, scenario
+`cache-plan`, sequential. Control uses the live rulebook; treatment uses the
+candidate rulebook with R5. Restated = numbered list plus all scenario keywords
+for that turn. Smoke run first (1 rep), then the full run.
+
+**Results** (6 follow-up turns per arm):
+
+| Arm       | Restated (R5) | Style compliant | Mean words |
+| --------- | ------------: | --------------: | ---------: |
+| control   |         66.7% |           83.3% |      113.7 |
+| treatment |         83.3% |            100% |      138.8 |
+
+Every miss came from turn 3 dropping the new "no new npm dependencies" constraint:
+control missed it twice, treatment once. R5 lift +16.7 points on restatement,
++16.7 on style compliance, no regression in any existing field. Cost: +25 mean
+words per reply (+22%).
+
+**Verdict:** R5 clears the adoption gate (lift above the ~2.2-point dilution
+cost, no field regression). The gain is exactly the state tracking the rule
+targets. Sample is small (one scenario, 3 reps) — confirm with a second scenario
+or more reps before adopting. Runs: `20260803-205534-mt` (smoke),
+`20260803-205829-mt` (full).
+
+---
+
+## 2026-08-03 — R5 confirmation and adoption
+
+**Question:** does the R5 lift hold on a second scenario in a different domain,
+and does R5 cause a style regression on the standard single-turn probes?
+
+**Method, part 1:** new scenario `stale-api-debug` (debugging domain: CDN vs
+Redis change, then a no-production-SSH constraint). 5 reps × 2 arms × 3 turns on
+`kimi-for-coding/k3-256k`, sequential. Run: `20260803-210629-mt`.
+
+**Results, part 1** (10 follow-up turns per arm):
+
+| Arm       | Restated (R5) | Style compliant | Mean words |
+| --------- | ------------: | --------------: | ---------: |
+| control   |           50% |             50% |      199.8 |
+| treatment |          100% |             80% |      247.1 |
+
+R5 lift +50 points on restatement, +30 on style compliance. Treatment replies
+again ran longer (+24%).
+
+**Method, part 2 (dilution check on single-turn probes):** the R5 candidate ran
+through the standard `harness.sh 3` on `opencode/nemotron-3-ultra-free`, the
+highest-grade free model in the opencode catalog. Kimi quota was exhausted, so
+this check is on a substitute model: directional only, not a gate. Run:
+`20260803-212404`.
+
+**Results, part 2:** fully compliant control 86.7% → treatment 93.3% (+6.6).
+Two fields dipped: em-dash-free -26.7 (n=15, four cells), repeated-opener-free
+-6.7. Per project policy, substitute-model numbers cannot decide a rule. Recorded
+as a monitoring item for the next Kimi run.
+
+**Verdict:** R5 ADOPTED into the live rulebook as rule 19 (after "please/etc").
+Two scenarios on the primary model, lifts +16.7 and +50, no field regression on
+the primary model. Root README synced (rule count, Rule decisions table).
+Monitor em-dash-free on the next Kimi single-turn run: if the dip repeats at
+scale, suspect dilution of rule 17.
+
 ## What to do next
 
-- **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5
-  "restate state every turn".
+- **Em-dash monitoring:** the nemotron dilution check showed em-dash-free -26.7
+  with R5 in the candidate. Re-check on Kimi when quota allows.
 - **Laguna banned-intensifier regression:** monitor on the next laguna run. If the -13.3
   regression repeats with the v4-phrased Rule 10, investigate what in the reworded text
   primes violations on this model.
@@ -432,8 +526,11 @@ Run IDs: v0 `20260803-132538`, v5 `20260803-133419`, v6 `20260803-134221`, v7 `2
 
 | File / dir                      | What it is                                                      |
 | ------------------------------- | --------------------------------------------------------------- |
-| `harness.sh`                    | A/B harness. `./harness.sh 3 --jobs 2` for a full run.         |
+| `harness.sh`                    | Single-turn A/B harness. `./harness.sh 3 --jobs 2` for a run.  |
+| `multiturn.sh`                  | Multi-turn A/B harness (session-pinned conversations).          |
+| `lib-replica.sh`                | Replica build/verify shared by both harnesses. Source, do not run. |
 | `score.mjs`                     | Deterministic scorer. `node score.mjs --json <file>` for JSON. |
+| `score-multiturn.mjs`           | Multi-turn scorer: R5 restatement check + style per follow-up.  |
 | `aggregate.mjs`                 | Roll up a run dir into scoreboard + results.json.               |
 | `BENCHMARK.md`                  | Numbers from the baseline measurement (2026-07-29 run).         |
 | `candidate-rules-proposal.md`   | Per-rule verdict for the 9 candidate rules.                     |
@@ -442,6 +539,7 @@ Run IDs: v0 `20260803-132538`, v5 `20260803-133419`, v6 `20260803-134221`, v7 `2
 | `plain-style.candidate.md`      | Candidate rulebook used in treatment during candidate bench.    |
 | `variants/`                     | Ablation variant rulesets (v0–v3).                              |
 | `prompts/`                      | 5 blind prose probes used in every run.                         |
+| `scenarios/`                    | Scripted multi-turn conversations + R5 expect keywords.         |
 | `fixtures/`                     | Scorer unit test fixtures.                                      |
 | `testdata/`                     | Mini-runs for aggregator tests.                                 |
 | `runs/`                         | Raw transcripts and aggregated results (gitignored, except the  |
@@ -462,4 +560,8 @@ node aggregate.mjs runs/<timestamp>
 
 # Different model
 BENCH_MODEL=kimi-for-coding/k3-256k ./harness.sh 3 --jobs 2
+
+# Multi-turn run (3 turns per cell, session-pinned)
+./multiturn.sh 3 --jobs 2
+node score-multiturn.mjs runs/<timestamp>-mt
 ```
