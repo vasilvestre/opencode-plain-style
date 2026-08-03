@@ -1,0 +1,1 @@
+One decision changed: the stale data comes from Redis, not from the CDN. Update the plan.
