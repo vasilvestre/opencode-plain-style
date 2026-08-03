@@ -245,16 +245,186 @@ discarded, 2 control cells failed), north-mini `20260802-190023`.
 
 ---
 
+## 2026-08-02 — English Language rules benchmark (opencode/laguna-s-2.1-free)
+
+**Question:** do the 8 proposed English Language rules improve compliance on the free tier?
+
+We created a candidate rulebook (`plain-style.candidate.md`) that merges the existing 18-rule
+rulebook with 8 proposed English Language rules: American English, title case for headings,
+no Oxford commas, second person ("you"), gender-neutral pronouns, contractions allowed,
+avoid passive voice, and avoid belittling words. We ran the full A/B harness on
+`opencode/laguna-s-2.1-free` (5 probes × 3 reps × 2 arms = 30 runs). Run: `runs/20260802-200742`.
+
+| Rule                    | Control | Treatment | Delta  |
+| ----------------------- | ------: | --------: | -----: |
+| Banned-intensifier-free |   73.3% |     93.3% | +20.0  |
+| Hedge-free              |   93.3% |     73.3% | **-20.0** |
+| Sentences ≤25 words     |   60.0% |     73.3% | +13.3  |
+| Fully compliant         |   40.0% |     60.0% | +20.0  |
+| Mean passive hits       |     1.5 |      0.9  |  -0.6  |
+| Mean words              |   223.1 |    261.9  | +38.8  |
+| Next-step present       |    0.0% |     46.7% | +46.7  |
+| Em-dash-free            |   20.0% |     53.3% | +33.3  |
+| Repeated-opener-free    |   73.3% |     66.7% |  -6.6  |
+| Preamble-closer-free    |  100.0% |     86.7% | -13.3  |
+
+### Hedge regression confirmed
+
+The candidate rulebook listed banned words explicitly in Rule 10, including the belittling
+words list (`obviously, simply, just, easy/easily, clearly, ...`). This triggered the same
+**hedge-priming** pattern documented earlier (2026-08-02 — Hedge-priming fix test).
+Weaker models echo back explicitly listed banned words.
+
+Hedge violations in treatment, all epistemic (not requirement-hedging):
+- `cache-1.txt`: "different cache layers may hold different versions"
+- `express-3.txt`: "May perform async work"
+- `express-1.txt`: "Should I modify the request/response?"
+- `postgres-1.txt`: "You should see output like"
+
+### Fixed candidate (v2 retest, partial run)
+
+We reworded the belittling words rule without listing the words ("Avoid words that signal
+laziness or condescension. State facts directly.") and removed "etc." from the contractions
+example. A partial retest (rep 1 only, 15 runs) on `runs/20260802-202202`:
+
+| Rule                    | Control | Treatment | Delta  |
+| ----------------------- | ------: | --------: | -----: |
+| Banned-intensifier-free |   85.7% |    100.0% | +14.3  |
+| Hedge-free              |   85.7% |     85.7% |  0.0   |
+| Fully compliant         |   71.4% |     71.4% |  0.0   |
+| Em-dash-free            |   28.6% |    100.0% | +71.4  |
+
+The hedge regression vanished with the anti-priming reword. Treatment stays neutral on
+fully-compliant in the partial run, but the earlier regression is eliminated.
+
+### Decisions
+
+| Proposed rule                              | Checkable in scorer | Verdict  | Notes                                                       |
+| ------------------------------------------ | ------------------- | -------- | ----------------------------------------------------------- |
+| American English                           | No                  | **Adopt** | Style convention; adopt as-is                              |
+| Title case for section titles              | No                  | **Adopt** | Style convention; adopt as-is                              |
+| No Oxford commas                           | No                  | **Adopt** | Style convention; adopt as-is                              |
+| Use "you" instead of "we"                  | No                  | **Adopt** | Aligns with existing Rule 2; adopt as-is                   |
+| Gender-neutral pronouns                    | No                  | **Adopt** | Style convention; adopt as-is                              |
+| Contractions allowed                       | No                  | **Adopt** | Style convention; adopt as-is                              |
+| Avoid passive voice                        | Yes (passive hits)  | **Adopt** | Active voice already in Rule 1; no separate rule needed   |
+| Avoid belittling words                     | Yes (via Rule 10)   | **Adopt** | Folded into Rule 10 via anti-priming reword; words not listed |
+
+**Adopted to live rulebook:**
+- Rule 6 rephrased: `"Run the tests", not "running the tests"` (was: "you should run the tests")
+- Rule 7 rephrased: `"State requirements as facts, with 'must'. Do not soften requirements."` (was: banned-word list)
+- Rule 10 rephrased: `"Do not use vague intensifiers or words that signal laziness or condescension. State the fact directly."` (was: banned-word list; now covers belittling words)
+
+**Not added to rulebook:** the 5 non-checkable English Language rules stay as documented conventions in the repo's contributing guide, not in the injected rulebook. Rationale: the rulebook only carries checkable rules that the harness can measure and that improve compliance metrics. Uncheckable rules add dilution cost (~2.2 points per rule) with no measurable lift.
+
+Run IDs: `20260802-200742` (Run 1, 30 runs), `20260802-202202` (Run 2, 15 runs partial).
+
+---
+
+## 2026-08-03 — Kimi validation of v4 rephrase (kimi-for-coding/k3-256k)
+
+**Question:** does the v4 anti-priming rephrase (rules 6, 7, 10 without banned-word lists)
+hold up on the primary model, with no regression?
+
+Full 30-run benchmark on `kimi-for-coding/k3-256k` with the updated live rulebook.
+Run: `runs/20260803-091349`.
+
+| Rule                    | Control | Treatment | Delta  |
+| ----------------------- | ------: | --------: | -----: |
+| Banned-intensifier-free |   80.0% |    100.0% | +20.0  |
+| Hedge-free              |   86.7% |     93.3% |  +6.6  |
+| Sentences ≤25 words     |   66.7% |     86.7% | +20.0  |
+| Fully compliant         |   53.3% |     80.0% | +26.7  |
+| Mean passive hits       |     0.3 |      0.2  |  -0.1  |
+| Mean words              |   124.3 |    149.8  | +25.5  |
+| Next-step present       |    0.0% |     93.3% | +93.3  |
+| Em-dash-free            |   46.7% |    100.0% | +53.3  |
+| Google-style-free       |   80.0% |     86.7% |  +6.7  |
+
+**Verdict:** v4 rephrase validated on Kimi. No regressions on any metric.
+Fully compliant rises +26.7 points, matching the original 16-rule baseline (+26.6).
+The reworded rules 6, 7, 10 keep their lift without priming violations.
+The live rulebook now carries the v4 phrasing permanently.
+
+---
+
+## 2026-08-03 — Kimi ablation (v1, v2, v3 on v4-phrased rulebook)
+
+**Question:** are the sentence-length, banned-intensifier, or hedge rules redundant on the
+primary model? (Sonnet ablation on 2026-07-31 suggested v1 and v3 might be; Kimi was never run.)
+
+Variants `v5-v4-no-sentence-length.md`, `v6-v4-no-banned.md`, `v7-v4-no-hedge.md` were
+created from the current live rulebook (v4 phrasing) minus one rule each. The original
+v1–v3 files (pre-v4 phrasing) are unchanged snapshots of the 2026-07-31 experiment.
+The v0 baseline is the 2026-08-03 run above (`runs/20260803-091349`). Redundancy threshold:
+treatment reaches ≥86.7% fully compliant without the rule.
+
+| Variant               | Rule removed        | Control | Treatment | Fully compliant ≥86.7%? |
+| --------------------- | ------------------- | ------: | --------: | ----------------------- |
+| v0-full               | none                |   53.3% |     80.0% | (baseline)              |
+| v5-no-sentence-length | Rule 4              |   73.3% |     60.0% | **No**                  |
+| v6-no-banned          | Rule 10             |   80.0% |     80.0% | **No**                  |
+| v7-no-hedge           | Rule 7              |   73.3% |     73.3% | **No**                  |
+
+**Verdict: no rules cut.** All three variants land below the 86.7% threshold on Kimi.
+Removing sentence-length (v1) costs the most: -20.0 versus the v0 treatment baseline.
+The Sonnet signal (v1, v3 possibly redundant) does not transfer to Kimi; rule redundancy
+is model-dependent. The full 19-rule v4-phrased rulebook stands.
+
+Note: v5's control arm shifted up (73.3% vs 53.3% in v0) — normal control-arm variance
+across runs. Treatment-arm comparisons against the threshold remain valid.
+
+v6 caveat: the first v6 run had 12 empty cells from a transient API outage
+(all rep-3 cells plus postgres rep-2, both arms). The failed cells were re-run individually
+and merged into `runs/20260803-102700`. Patch runs: `20260803-131156` through `20260803-131605`.
+
+Run IDs: v5 `20260803-101107`, v6 `20260803-102700` (patched), v7 `20260803-131724`.
+
+---
+
+## 2026-08-03 — Free-tier ablation and v4 full retest (opencode/laguna-s-2.1-free)
+
+**Question:** does any rule look redundant on a free-tier model, and does the full
+v4-phrased rulebook still help there? (Explores the tier-specific rulebook theory.)
+
+Four 30-run A/B benchmarks on `opencode/laguna-s-2.1-free`: v0 full rulebook plus the
+v5/v6/v7 ablation variants. The v0 run also serves as the full retest of the reworded
+rulebook on this model (the 2026-08-02 retest was partial, 15 runs).
+
+| Variant               | Rule removed | Control | Treatment | Delta  |
+| --------------------- | ------------ | ------: | --------: | -----: |
+| v0-full               | none         |   66.7% |     60.0% | **-6.7** |
+| v5-no-sentence-length | Rule 4       |   53.3% |     60.0% |  +6.7  |
+| v6-no-banned          | Rule 10      |   53.3% |     53.3% |   0.0  |
+| v7-no-hedge           | Rule 7       |   60.0% |     53.3% |  -6.7  |
+
+**Verdict:** no rule is redundant on laguna either — every treatment arm sits far below
+the 86.7% threshold. No cuts justified on any model so far.
+
+Two secondary observations:
+
+1. The v0 delta on laguna is negative (-6.7), and deltas across the four runs bounce
+   between -6.7 and +6.7. With n=15 per arm, the noise band on this model is roughly
+   ±7 points, so none of these deltas is distinguishable from zero. Laguna's v0
+   fully-compliant rate (60.0%) matches its earlier v0-phrasing result (66.7% control
+   shifted to 53.3% in the 2026-08-02 v4 test — same noise band).
+2. The v0 run shows a banned-intensifier regression (-13.3: control 100%, treatment 86.7%).
+   The reworded Rule 10 mentions no banned words, yet violations rose. Sample of one run;
+   flag for monitoring on the next laguna run before acting.
+
+Tier-specific rulebooks: the data gives no support yet. No rule is cuttable on laguna,
+and the rulebook's overall effect on this model is within noise of zero — a different
+problem (weak lift) than redundancy would be.
+
+Run IDs: v0 `20260803-132538`, v5 `20260803-133419`, v6 `20260803-134221`, v7 `20260803-135240`.
+
 ## What to do next
 
-- **When Kimi quota recovers:** run `BENCH_MODEL=kimi-for-coding/k3-256k bash harness.sh 3 --jobs 2 --candidate variants/v1-no-sentence-length.md` (and v2, v3). Apply the ≥86.7% threshold to Kimi results only.
-- **If Kimi confirms v3 redundant:** cut the hedge rule → 18-rule set.
-- **If Kimi confirms v1 redundant:** cut the sentence-length rule → 17-rule set.
-- **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5 "restate state every turn".
-- **Flash hedge regression:** run v3 (no-hedge) on deepseek-v4-flash-free. If flash stays ≥86.7% hedge-free without the rule, the hedge rule hurts this tier; consider tier-specific rulebooks or cutting it.
-- **Mimo negative delta:** resolved — the hedge-priming rephrase (v4) turned mimo from -6.7 to +20.0. Mimo is no longer an open question.
-- **Adopt v4 rephrase:** when Kimi quota returns, validate rules 6+7 rephrase on Kimi (expect no regression — high-end models never regressed on hedge), then adopt it in `.opencode/plugins/plain-style.md`.
-- **More model tiers:** the high-end (Kimi, Sonnet) vs low-end (flash) gap suggests running one more mid-tier model to map the curve.
+- **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5
+  "restate state every turn".
+- **Laguna banned-intensifier regression:** monitor on the next laguna run. If the -13.3
+  regression repeats with the v4-phrased Rule 10, investigate what in the reworded text
+  primes violations on this model.
 
 ---
 
