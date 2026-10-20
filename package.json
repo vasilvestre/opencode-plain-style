@@ -1,6 +1,6 @@
 {
   "name": "@vasilvestre/opencode-plain-style",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Plain-language writing rules for opencode agents, injected into every system prompt. Enforces ISO 24495-1 principles on commits, comments, docs, and chat prose.",
   "keywords": [
     "opencode-plugin",
