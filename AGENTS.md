@@ -92,6 +92,10 @@ Before adding a rule, verify:
 - Its compliance lift on the primary model exceeds ~2.2 points (the empirical per-rule dilution cost).
 - It does not cause a regression in any existing field.
 
+An addition must come with monitoring once the rule is proven working:
+- Add the rule's fields to the "What to do next" section of `bench/README.md` for monitoring (example: the laguna banned-intensifier regression watch).
+- Check those fields for regression on every later bench run and log any regression in `bench/README.md`.
+
 Before removing a rule, verify:
 - The model reaches ≥86.7% fully-compliant without it on the primary model.
 - The result comes from a Kimi run, not a substitute model.
