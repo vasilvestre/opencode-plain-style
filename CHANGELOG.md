@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/vasilvestre/opencode-plain-style/compare/v1.1.1...v1.2.0) (2026-10-20)
+
+
+### Features
+
+* **plain-style:** make the next line runnable ([4867a57](https://github.com/vasilvestre/opencode-plain-style/commit/4867a57b901d5a71de3ba477e7fbdb4873ed4ebd))
+
 ## [1.1.1](https://github.com/vasilvestre/opencode-plain-style/compare/v1.1.0...v1.1.1) (2026-10-20)
 
 
