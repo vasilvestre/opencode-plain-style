@@ -23,10 +23,10 @@
     "url": "https://github.com/vasilvestre/opencode-plain-style/issues"
   },
   "type": "module",
-  "main": "./.opencode/plugins/plain-style.mjs",
+  "main": "./.opencode/plugins/plain-style.js",
   "exports": {
-    ".": "./.opencode/plugins/plain-style.mjs",
-    "./plugin": "./.opencode/plugins/plain-style.mjs"
+    ".": "./.opencode/plugins/plain-style.js",
+    "./plugin": "./.opencode/plugins/plain-style.js"
   },
   "scripts": {
     "test": "node scripts/check-plugin.mjs"

@@ -4,7 +4,7 @@
 # Writes a temporary marker candidate at bench/plain-style.candidate.md
 # (preserving any existing file, restored on exit), runs ./harness.sh 0,
 # and asserts the treatment arm picked up the marker rulebook and the repo
-# plugin as REAL files with a local ./plugins/plain-style.mjs config entry.
+# plugin as REAL files with a local ./plugins/plain-style.js config entry.
 #
 # Exits 0 only if every assertion passes. Stock mode is NOT tested here:
 # it stays broken-by-design until a candidate file exists.
@@ -59,10 +59,10 @@ check() { # check <label> <0=pass>
 cmp -s "$CANDIDATE" "$TREAT/plugins/plain-style.md"; check "treatment plain-style.md == candidate marker" $?
 
 # --- (e) treatment plugin is a real file, not a symlink ---------------------
-[[ -f "$TREAT/plugins/plain-style.mjs" && ! -L "$TREAT/plugins/plain-style.mjs" ]]; check "treatment plain-style.mjs is a regular file" $?
+[[ -f "$TREAT/plugins/plain-style.js" && ! -L "$TREAT/plugins/plain-style.js" ]]; check "treatment plain-style.js is a regular file" $?
 
 # --- (f) treatment config points at the local plugin, not the npm name ------
-grep -qF './plugins/plain-style.mjs' "$TREAT/opencode.jsonc"; check "treatment config contains ./plugins/plain-style.mjs" $?
+grep -qF './plugins/plain-style.js' "$TREAT/opencode.jsonc"; check "treatment config contains ./plugins/plain-style.js" $?
 grep -qF '@vasilvestre' "$TREAT/opencode.jsonc"; rc_v=$?
 [[ "$rc_v" -ne 0 ]]; check "treatment config drops @vasilvestre npm name" $?
 

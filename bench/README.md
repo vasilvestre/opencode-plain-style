@@ -418,6 +418,15 @@ problem (weak lift) than redundancy would be.
 
 Run IDs: v0 `20260803-132538`, v5 `20260803-133419`, v6 `20260803-134221`, v7 `20260803-135240`.
 
+NOTE 2026-10-20: for opencode v2 compatibility the plugin renames
+`plain-style.mjs` to `plain-style.js`; `harness.sh` and `test-harness.sh`
+reference the new name. The same change fixes a latent `gen_config` bug: if the
+live config's plugin array ends with a full-line comment, comment stripping
+left a trailing comma and `JSON.parse` failed, producing a config without the
+plugin entries. Trailing commas from stripped comment lines are now removed.
+Injection content is unchanged, so no re-run is due.
+All runs on this page used the `.mjs` path with identical injection.
+
 ## What to do next
 
 - **Multi-turn bench:** implement a multi-turn harness mode to test i-have-adhd R5

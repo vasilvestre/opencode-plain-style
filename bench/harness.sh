@@ -57,7 +57,7 @@ enabled_mcps() {
 }
 
 # gen_config <arm> <dst>: copy live opencode.jsonc with all mcp.*.enabled=false;
-# control also drops the ./plugins/plain-style.mjs plugin entry; treatment with
+# control also drops the ./plugins/plain-style.js plugin entry; treatment with
 # a candidate file repoints plain-style entries at the local copy.
 gen_config() {
   local arm="$1" dst="$2" cand=0
@@ -66,14 +66,15 @@ gen_config() {
     const fs = require("fs");
     const src = fs.readFileSync(process.env.SRC, "utf8");
     // JSONC: drop full-line // comments only (never touch inline content);
-    // JSON.parse below verifies the result parses.
-    const stripped = src.split(/\r?\n/).filter(l => !/^\s*\/\//.test(l)).join("\n");
+    // dropping a comment line after the last array entry leaves a trailing
+    // comma, which the JSON parser rejects (remove those too).
+    const stripped = src.split(/\r?\n/).filter(l => !/^\s*\/\//.test(l)).join("\n").replace(/,(\s*[}\]])/g, "$1");
     const cfg = JSON.parse(stripped);
     for (const k of Object.keys(cfg.mcp ?? {})) cfg.mcp[k].enabled = false;
     if (process.env.ARM === "control")
       cfg.plugin = (cfg.plugin ?? []).filter(p => !String(p).includes("plain-style"));
     else if (process.env.CAND === "1")
-      cfg.plugin = (cfg.plugin ?? []).map(p => String(p).includes("plain-style") ? "./plugins/plain-style.mjs" : p);
+      cfg.plugin = (cfg.plugin ?? []).map(p => String(p).includes("plain-style") ? "./plugins/plain-style.js" : p);
     fs.writeFileSync(process.env.DST, JSON.stringify(cfg, null, 2) + "\n");
   '
   # Pass 2: plugins (oh-my-openagent) inject extra MCPs; a user-config entry
@@ -105,7 +106,8 @@ gen_omo_config() {
   SRC="$LIVE/oh-my-openagent.json" DST="$dst" NAMES="$names" bun -e '
     const fs = require("fs");
     const stripped = fs.readFileSync(process.env.SRC, "utf8")
-      .split(/\r?\n/).filter(l => !/^\s*\/\//.test(l)).join("\n");
+      .split(/\r?\n/).filter(l => !/^\s*\/\//.test(l)).join("\n")
+      .replace(/,(\s*[}\]])/g, "$1");
     const cfg = JSON.parse(stripped);
     const dis = new Set(cfg.disabled_mcps ?? []);
     for (const n of (process.env.NAMES || "").split(" ").filter(Boolean)) dis.add(n);
@@ -127,7 +129,7 @@ build_replica() {
   done
   for f in "$LIVE"/plugins/*; do
     base="$(basename "$f")"
-    if [[ "$arm" == control && ( "$base" == plain-style.mjs || "$base" == plain-style.md ) ]]; then
+    if [[ "$arm" == control && ( "$base" == plain-style.js || "$base" == plain-style.md ) ]]; then
       continue
     fi
     ln -sfn "$f" "$dir/plugins/$base"
@@ -137,8 +139,8 @@ build_replica() {
   # symlink and bypass the candidate. rm first: cp onto a symlink would
   # overwrite the LIVE target.
   if [[ "$arm" == treatment && -f "$CANDIDATE_FILE" ]]; then
-    rm -f "$dir/plugins/plain-style.mjs" "$dir/plugins/plain-style.md"
-    cp "$BENCH/../.opencode/plugins/plain-style.mjs" "$dir/plugins/plain-style.mjs"
+    rm -f "$dir/plugins/plain-style.js" "$dir/plugins/plain-style.md"
+    cp "$BENCH/../.opencode/plugins/plain-style.js" "$dir/plugins/plain-style.js"
     cp "$CANDIDATE_FILE" "$dir/plugins/plain-style.md"
   fi
   gen_config "$arm" "$dir/opencode.jsonc"
@@ -149,7 +151,7 @@ build_replica() {
 verify_replica() {
   local arm="$1" ps en
   debug_config "$arm"
-  ps="$(grep -cE 'plain-style\.(mjs|md)' "$BENCH/.cache/$arm.debug.json" || true)"
+  ps="$(grep -cE 'plain-style\.(js|md)' "$BENCH/.cache/$arm.debug.json" || true)"
   en="$(enabled_mcps "$BENCH/.cache/$arm.debug.json")"
   echo "--- verify $arm ---"
   echo "plain-style plugin refs: $ps"
