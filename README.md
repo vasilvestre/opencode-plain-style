@@ -24,7 +24,7 @@ Rules include:
 - `must` for requirements, stated as facts without softening.
 - No vague intensifiers or words that signal laziness or condescension.
 - Lists and headings over walls of text, conclusion first.
-- One "Next:" line at the end naming a concrete action.
+- A "Next:" line at the end that gives the next step as runnable commands in a fenced code block.
 - No em dashes as punctuation, no "please" in instructions, no "etc.".
 
 Because the injection happens per request, the rules survive context compaction.
@@ -205,6 +205,18 @@ For a hard guarantee, add deterministic linting (for example Vale) to CI.
 
 The table shows the original 16-rule baseline. The current 19-rule rulebook
 re-validated on the same model at +26.7 points (53.3% to 80.0%, 2026-08-03).
+
+The 2026-10-20 rulebook (rule 16 rephrased: runnable commands in a fenced block)
+re-validated on two free-tier models:
+
+| Model                             | Control | Treatment | Delta |
+| --------------------------------- | ------: | --------: | ----: |
+| opencode/deepseek-v4.1-flash-free |   60.0% |     100.0% | +40.0 |
+| opencode/glm-5.3-flash-free       |   66.7% |      73.3% |  +6.6 |
+
+Free tiers stay inside the noise of their earlier runs; deepseek posts the
+strongest treatment arm measured so far.
+Full per-field numbers: [bench/README.md](bench/README.md).
 
 Full details: [bench/BENCHMARK.md](bench/BENCHMARK.md).
 

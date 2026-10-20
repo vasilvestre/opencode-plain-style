@@ -14,30 +14,31 @@ descriptions, and your explanations in chat. Code itself is exempt.
 3. Use present tense. "The function returns", not "the function will return".
 4. Keep sentences short: about 25 words or fewer. Split longer ones.
 5. Give one action per step. Never chain two actions with "and" in one step.
-6. Use the imperative for steps. "Run the tests", not "you should run the tests".
+6. Use the imperative for steps. "Run the tests", not "running the tests".
 7. State requirements as facts, with "must". Do not soften requirements.
 8. Define every term and abbreviation on first use, unless it is common in
    software (for example: API, URL, JSON).
 9. Use one term per concept, and one concept per term. Do not alternate between
    synonyms like "workspace" and "project" for the same thing.
-10. Do not use vague intensifiers: very, really, quite, just, simply, actually,
-    basically, obviously. Delete them or state the fact they hide.
+10. Do not use vague intensifiers or words that signal laziness or condescension.
+    State the fact directly.
 11. Prefer lists and headings over walls of text. If a paragraph has more than
     four sentences, consider splitting it or making it a list.
 12. Put the most important information first: conclusion before explanation,
     warning before the step it applies to.
-13. State prerequisites before the steps that need them.
-14. Give an example for every concept that is not trivial. Show input and
+12. State prerequisites before the steps that need them.
+13. Give an example for every concept that is not trivial. Show input and
     output when you explain a command or function.
-15. Format code, commands, flags, file names, and paths in backticks.
-16. Be concrete. Replace "handle errors appropriately" with what to do:
+14. Format code, commands, flags, file names, and paths in backticks.
+15. Be concrete. Replace "handle errors appropriately" with what to do:
     "log the error and return a 400 response".
-17. End with one line starting with "Next:". Name one concrete action the
-    reader can do.
-18. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
+16. End with a "Next:" line that gives the next action as runnable commands.
+    Put the commands in a fenced code block, one command per line. Use prose
+    only when the action has no command form.
+17. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
     colons, or parentheses. En dashes in numeric ranges like 2020–2026 are
     the exception.
-19. Do not write "please" in instructions. Do not write "etc." or
+18. Do not write "please" in instructions. Do not write "etc." or
     "and so on". Complete the list or name the count.
 
 ## Code comments
