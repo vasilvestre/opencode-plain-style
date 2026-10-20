@@ -24,13 +24,21 @@ import { fileURLToPath } from 'url';
 
 // Read once at load; a missing file throws here so startup fails loud instead
 // of silently injecting nothing.
+const dir = path.dirname(fileURLToPath(import.meta.url));
 const rulebook = fs.readFileSync(
-  path.join(path.dirname(fileURLToPath(import.meta.url)), 'plain-style.md'),
+  path.join(dir, 'plain-style.md'),
   'utf8',
 );
 
+// opencode v2 rejects duplicate plugin ids at startup and drops every plugin
+// when two instances collide. The npm install and a local repo copy share one
+// file path shape, so each instance gets a unique id keyed by its own
+// directory.
+const location = dir.replaceAll(/[^\w]/g, '');
+const hash = [...location].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7).toString(16);
+
 export default {
-  id: 'vasilvestre.opencode-plain-style',
+  id: `vasilvestre.opencode-plain-style-${hash}`,
   async setup(ctx) {
     await ctx.session.hook('context', (event) => {
       event.system.push({ type: 'text', text: rulebook });

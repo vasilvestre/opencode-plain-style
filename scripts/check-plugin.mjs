@@ -18,8 +18,8 @@ if (typeof createPlugin.setup !== 'function') {
   console.error('FAIL: plugin does not export a setup() entrypoint for opencode v2');
   process.exit(1);
 }
-if (typeof createPlugin.id !== 'string' || createPlugin.id.length === 0) {
-  console.error('FAIL: plugin does not export an id (required by opencode v2)');
+if (typeof createPlugin.id !== 'string' || !createPlugin.id.startsWith('vasilvestre.opencode-plain-style')) {
+  console.error('FAIL: plugin does not export a stable id (required by opencode v2)');
   process.exit(1);
 }
 if (typeof hooks[HOOK] !== 'function') {
