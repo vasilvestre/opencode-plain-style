@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/vasilvestre/opencode-plain-style/compare/v1.0.0...v1.1.0) (2026-10-20)
+
+
+### Features
+
+* support opencode v2 plugins ([461e89c](https://github.com/vasilvestre/opencode-plain-style/commit/461e89cead02e028194227f130333820ae47394d))
+
 ## 1.0.0 (2026-08-03)
 
 
