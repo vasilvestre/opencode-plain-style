@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/vasilvestre/opencode-plain-style/compare/v1.1.0...v1.1.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* unique plugin id per install path ([cb1c9f2](https://github.com/vasilvestre/opencode-plain-style/commit/cb1c9f292245afa2047e1d024333025ae0c2d4c9))
+
 ## [1.1.0](https://github.com/vasilvestre/opencode-plain-style/compare/v1.0.0...v1.1.0) (2026-10-20)
 
 
