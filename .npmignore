@@ -1,0 +1,4 @@
+# Mirrors the package.json "files" allowlist: [".opencode/", "LICENSE"].
+# npm always includes package.json, README.md, LICENSE, CHANGELOG.md.
+*
+!.opencode/**
