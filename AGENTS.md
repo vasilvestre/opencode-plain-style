@@ -168,3 +168,21 @@ Before removing a rule, verify:
 - The rulebook is read from disk once at module load. Each request costs one
   array push and zero I/O.
 - `bench/harness.sh` needs `bun` and a live opencode config. See `bench/AGENTS.md`.
+
+## Release
+
+Published to npm. `.github/workflows/release.yml` publishes on every push to
+`main` when the version in `package.json` is not on npm yet.
+
+Bumping the version is the release decision:
+
+```bash
+npm version patch   # or minor, or major
+git push --follow-tags
+```
+
+The workflow stops at "Skip when already published" when the version is
+unchanged. It never invents a version. `ci.yml` runs the tests only.
+
+The npm trusted publisher points at `vasilvestre/opencode-plain-style`,
+workflow `release.yml`.
