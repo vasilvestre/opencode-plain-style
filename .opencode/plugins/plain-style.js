@@ -30,6 +30,23 @@ const rulebook = fs.readFileSync(
   'utf8',
 );
 
+// Agents whose tool list is narrowed before the request is built. A review or
+// planning agent has no business writing, and a tool it cannot see is a tool it
+// cannot call. This is a prompt-level guard: `permissions` in the agent file
+// stays the real one.
+const HIDDEN_TOOLS = [
+  { test: /rev|review|audit|plan/i, tools: ['write', 'edit', 'patch'] },
+];
+
+// "warn" (default) logs and changes nothing; "enforce" removes the tools.
+function hiddenTools(agent, mode) {
+  const rule = HIDDEN_TOOLS.find((r) => r.test.test(agent));
+  if (!rule) return [];
+  if (mode === 'enforce') return rule.tools;
+  console.warn(`plain-style: agent "${agent}" could hide ${rule.tools.join(', ')} (mode warn)`);
+  return [];
+}
+
 // opencode v2 rejects duplicate plugin ids at startup and drops every plugin
 // when two instances collide. The npm install and a local repo copy share one
 // file path shape, so each instance gets a unique id keyed by its own
@@ -40,8 +57,13 @@ const hash = [...location].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
 export default {
   id: `vasilvestre.opencode-plain-style-${hash}`,
   async setup(ctx) {
+    const mode = ctx.options?.agentTools ?? 'warn';
     await ctx.session.hook('context', (event) => {
       event.system.push({ type: 'text', text: rulebook });
+      // The context event carries the agent id and the tool map. Deleting a
+      // key removes the tool from the request, not from the tool registry.
+      if (!event.tools || !event.agent) return;
+      for (const name of hiddenTools(event.agent, mode)) delete event.tools[name];
     });
   },
   async server() {

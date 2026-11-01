@@ -34,3 +34,43 @@ if (output.system.length !== 1 || !output.system[0].includes(MARKER)) {
 }
 console.log(`OK: hook "${HOOK}" injects the rulebook`);
 console.log(`OK: setup() and server() entrypoints and id "${createPlugin.id}" present`);
+
+// The v2 context hook also narrows the tool list, but only in enforce mode.
+async function contextEvent(options, agent) {
+  let handler;
+  await createPlugin.setup({
+    options,
+    session: { hook: async (name, fn) => name === 'context' && (handler = fn) },
+  });
+  const event = { agent, system: [], tools: { read: {}, write: {}, edit: {}, patch: {}, shell: {} } };
+  await handler(event);
+  return event;
+}
+
+const warn = await contextEvent({}, 'code-reviewer');
+if (!('write' in warn.tools) || !('edit' in warn.tools)) {
+  console.error('FAIL: warn mode removed a tool');
+  process.exit(1);
+}
+if (warn.system.length !== 1) {
+  console.error('FAIL: warn mode did not inject the rulebook');
+  process.exit(1);
+}
+
+const enforce = await contextEvent({ agentTools: 'enforce' }, 'code-reviewer');
+if ('write' in enforce.tools || 'edit' in enforce.tools || 'patch' in enforce.tools) {
+  console.error('FAIL: enforce mode kept a hidden tool for a review agent');
+  process.exit(1);
+}
+if (!('read' in enforce.tools) || !('shell' in enforce.tools)) {
+  console.error('FAIL: enforce mode removed a tool it must keep');
+  process.exit(1);
+}
+
+const builder = await contextEvent({ agentTools: 'enforce' }, 'build');
+if (!('write' in builder.tools) || !('edit' in builder.tools)) {
+  console.error('FAIL: enforce mode removed a tool from an agent that writes');
+  process.exit(1);
+}
+
+console.log('OK: the context hook hides write tools from review agents in enforce mode only');

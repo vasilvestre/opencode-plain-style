@@ -32,6 +32,7 @@ scripts/             # check-plugin.mjs, the npm test entry
 | Symbol | Type | Location | Role |
 | ------ | ---- | -------- | ---- |
 | default export | plugin hook | `.opencode/plugins/plain-style.js` | Registers both the v2 `context` hook and the v1 `experimental.chat.system.transform` hook |
+| `HIDDEN_TOOLS` / `hiddenTools` | table, function | `.opencode/plugins/plain-style.js` | Which tools the v2 hook removes from which agent, in `enforce` mode only |
 | `analyzeText` / `analyzeFile` | function | `bench/score.mjs` | Score one transcript against the rules |
 | `METRICS` | table | `bench/aggregate.mjs` | One table drives buckets, summary, and scoreboard rows |
 | `aggregate` | function | `bench/aggregate.mjs` | Turn a run dir into `results.json` and `scoreboard.md` |
