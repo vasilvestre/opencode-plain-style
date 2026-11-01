@@ -1,6 +1,6 @@
 # AGENTS.md: maintainer instructions and project knowledge
 
-**Generated:** 2026-08-03 · **Commit:** 7e8eb9d · **Branch:** main
+**Generated:** 2026-11-01 · **Commit:** 39dd2ac · **Branch:** main
 
 ## Overview
 
@@ -11,10 +11,10 @@ dependencies. The repo also holds the A/B benchmark suite that justifies each ru
 ## Structure
 
 ```
-.opencode/plugins/   # plugin entry (plain-style.mjs) + live rulebook (plain-style.md)
+.opencode/plugins/   # plugin entry (plain-style.js) + live rulebook (plain-style.md)
 bench/               # benchmark harness, scorer, aggregator, variants, runs
 scripts/             # check-plugin.mjs, the npm test entry
-.github/workflows/   # ci.yml (plugin hook check) and release.yml (release-please + npm)
+.github/workflows/   # ci.yml (plugin hook check) and release.yml (publish on version bump)
 ```
 
 ## Where to look
@@ -22,7 +22,7 @@ scripts/             # check-plugin.mjs, the npm test entry
 | Task | Location | Notes |
 | ---- | -------- | ----- |
 | Change rule text | `.opencode/plugins/plain-style.md` | Live rulebook, injected per request |
-| Change plugin code | `.opencode/plugins/plain-style.mjs` | About 25 lines, reads rulebook once at load |
+| Change plugin code | `.opencode/plugins/plain-style.js` | About 60 lines, reads rulebook once at load |
 | Run or extend the benchmark | `bench/` | Has its own `bench/AGENTS.md` |
 | Validate the plugin | `scripts/check-plugin.mjs` | Runs via `npm test` |
 | Read experiment history | `bench/README.md` | Append-only log, see below |
@@ -31,7 +31,7 @@ scripts/             # check-plugin.mjs, the npm test entry
 
 | Symbol | Type | Location | Role |
 | ------ | ---- | -------- | ---- |
-| default export | plugin hook | `.opencode/plugins/plain-style.mjs` | Registers `experimental.chat.system.transform` |
+| default export | plugin hook | `.opencode/plugins/plain-style.js` | Registers both the v2 `context` hook and the v1 `experimental.chat.system.transform` hook |
 | `analyzeText` / `analyzeFile` | function | `bench/score.mjs` | Score one transcript against the rules |
 | `METRICS` | table | `bench/aggregate.mjs` | One table drives buckets, summary, and scoreboard rows |
 | `aggregate` | function | `bench/aggregate.mjs` | Turn a run dir into `results.json` and `scoreboard.md` |
@@ -61,6 +61,8 @@ node bench/aggregate.mjs bench/runs/<timestamp>   # aggregate a completed run
 - Never list banned words inside a rule. Weaker models echo the list and produce
   more violations. Rules state what to do, not what to avoid by name.
 - Never rewrite past sections of `bench/README.md`. Append only.
+- Never pin a model in the plugin. The plugin code holds none; the model lives
+  in `BENCH_MODEL` for benchmarks and nowhere else.
 
 ## bench/README.md: keep it current
 
@@ -163,8 +165,12 @@ Before removing a rule, verify:
 
 ## Notes
 
-- The plugin hook `experimental.chat.system.transform` is experimental in
-  opencode. If opencode renames it, the plugin must fail loudly at startup.
+- The v1 hook `experimental.chat.system.transform` is experimental in opencode.
+  The v2 path uses the `context` session hook instead. The plugin keeps both so
+  one file serves both versions.
+- The plugin id is derived from its own directory path, because opencode v2
+  drops every plugin when two instances claim the same id. Do not replace it
+  with a constant.
 - The rulebook is read from disk once at module load. Each request costs one
   array push and zero I/O.
 - `bench/harness.sh` needs `bun` and a live opencode config. See `bench/AGENTS.md`.
