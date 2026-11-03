@@ -32,9 +32,9 @@ descriptions, and your explanations in chat. Code itself is exempt.
 14. Format code, commands, flags, file names, and paths in backticks.
 15. Be concrete. Replace "handle errors appropriately" with what to do:
     "log the error and return a 400 response".
-16. End with a "Next:" line that gives the next action as runnable commands.
-    Put the commands in a fenced code block, one command per line. Use prose
-    only when the action has no command form.
+16. End documentation (READMEs, docs, PR descriptions) with a "Next:" line
+    that gives the reader's next step as runnable commands in a fenced code
+    block. Do not add a "Next:" line to chat replies.
 17. Do not use em dashes (—) or en dashes (–) as punctuation. Use commas,
     colons, or parentheses. En dashes in numeric ranges like 2020–2026 are
     the exception.
