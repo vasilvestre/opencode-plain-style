@@ -62,7 +62,7 @@ The pattern: every "before" hides a fact or an action. Every "after" states it.
 
 ## Rule decisions
 
-Every rule in the rulebook earned its place through an A/B benchmark.
+Every wording rule in the rulebook earned its place through an A/B benchmark.
 Rules enter only if their compliance lift beats the measured dilution cost
 (~2.2 points per added rule) and they leave only if the model stays at ≥86.7%
 fully compliant without them. Ablations on two models found no rule cuttable.
