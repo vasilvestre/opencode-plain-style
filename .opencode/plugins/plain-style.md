@@ -40,6 +40,8 @@ descriptions, and your explanations in chat. Code itself is exempt.
     the exception.
 18. Do not write "please" in instructions. Do not write "etc." or
     "and so on". Complete the list or name the count.
+19. Do not wrap prose at a fixed column. Write one paragraph per line, and
+    one list item per line, so the renderer does the wrapping.
 
 ## Code comments
 
